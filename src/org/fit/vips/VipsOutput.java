@@ -68,7 +68,7 @@ public class VipsOutput {
 			vipsElement.setAttribute("WindowWidth", String.valueOf(pageViewport.getContentWidth()));
 			vipsElement.setAttribute("WindowHeight", String.valueOf(pageViewport.getContentHeight()));
 			vipsElement.setAttribute("PageRectTop", "neznam");
-			vipsElement.setAttribute("PageRectHeight", String.valueOf(pageViewport.getContentWidth()));
+			vipsElement.setAttribute("PageRectWidth", String.valueOf(pageViewport.getContentWidth()));
 			vipsElement.setAttribute("PageRectHeight", String.valueOf(pageViewport.getContentHeight()));
 //			vipsElement.setAttribute("PageRectWidth", "840");
 //			vipsElement.setAttribute("PageRectHeight", "928");

@@ -10,23 +10,34 @@ import org.w3c.dom.Node;
 
 public class VisualStructure {
 
+	//rendered Box, that corresponds to DOM element
 	private Box _box = null;
+	//children of this node
 	private List<VisualStructure> _children = null;
+	//node id
 	private int _id = 0;
+	//node's Degree Of Coherence
 	private int _DoC = 0;
-	
+
+	//if node contains image
 	private boolean _containImg = false;
+	//if node is image
 	private boolean _isImg = false;
+	//if node is visual block
 	private boolean _isVisualBlock = false;
+	//if node contains table
 	private boolean _containTable = false;
+	//if node contains paragraph
 	private boolean _containP = false;
+	//if node was already divided
 	private boolean _alreadyDivided = false;
-	private boolean _isDividable = false;
-	private int _textLen = 0;
-	private int _linkTextLen = 0;
+	//if node can be divided
+	private boolean _isDividable = true;
 	
-	private int _windowWidth = 0; 
-	private int _windowHeight = 0;
+	//length of text in node
+	private int _textLen = 0;
+	//length of text in links in node
+	private int _linkTextLen = 0;
 	
 	public VisualStructure() {
 		this._children = new ArrayList<VisualStructure>();
@@ -38,7 +49,21 @@ public class VisualStructure {
 		addChild(node);
 	}
 	
-	private void checkProperities()
+	private void setIsVisualBlock()
+	{
+		_isVisualBlock = true;
+		checkProperties();
+	}
+	
+	private boolean isVisualBlock()
+	{
+		return _isVisualBlock;
+	}
+
+	/**
+	 * Checks the properties of visual block
+	 */
+	private void checkProperties()
 	{
 		checkIsImg();
 		checkContainImg(this);
@@ -180,38 +205,6 @@ public class VisualStructure {
 	public void setDoC(int doC)
 	{
 		this._DoC = doC;
-	}
-
-	/**
-	 * @return the _windowWidth
-	 */
-	public int getWindowWidth()
-	{
-		return _windowWidth;
-	}
-
-	/**
-	 * @param _windowWidth the _windowWidth to set
-	 */
-	public void setWindowWidth(int windowWidth)
-	{
-		this._windowWidth = windowWidth;
-	}
-
-	/**
-	 * @return the _windowHeight
-	 */
-	public int getWindowHeight()
-	{
-		return _windowHeight;
-	}
-
-	/**
-	 * @param _windowHeight the _windowHeight to set
-	 */
-	public void setWindowHeight(int windowHeight)
-	{
-		this._windowHeight = windowHeight;
 	}
 
 	/**

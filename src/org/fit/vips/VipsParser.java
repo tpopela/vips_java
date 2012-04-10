@@ -14,7 +14,6 @@ import org.fit.cssbox.layout.Viewport;
 
 public class VipsParser {
 
-	private DOMAnalyzer _domAnalyzer = null;
 	private VisualStructure _visualStructure = null;
 	private VisualStructure _currentVisualStructure = null;
 	private int _sizeTresholdWidth = 0;
@@ -28,8 +27,7 @@ public class VipsParser {
 	 *            Analyzer, that includes DOM tree of page and styles used on
 	 *            page.
 	 */
-	public VipsParser(DOMAnalyzer domAnalyzer, Viewport viewport) {
-		this._domAnalyzer = domAnalyzer;
+	public VipsParser(Viewport viewport) {
 		this._viewport = viewport;
 		this._visualStructure = new VisualStructure();
 		this._sizeTresholdHeight = 20;
@@ -37,18 +35,17 @@ public class VipsParser {
 	}
 
 	/**
-	 * Starts visual page segmentation on document
+	 * Starts visual page segmentation on given page
 	 */
 	public void parse()
 	{
-		if (_domAnalyzer != null)
+		if (_viewport != null)
 		{
-//			checkDomTree(_domAnalyzer.getBody());
 			constructVisualStructureTree(_viewport.getElementBoxByName("body", false), _visualStructure);
 			checkViewportTree(_visualStructure);
 		}
 		else
-			System.out.print("domAnalyzer not defined");
+			System.out.print("Page's ViewPort is not defined not defined");
 	}
 	
 	private void constructVisualStructureTree(Box element, VisualStructure node)
