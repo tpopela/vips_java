@@ -6,7 +6,6 @@
 
 package org.fit.vips;
 
-import org.fit.cssbox.css.DOMAnalyzer;
 import org.fit.cssbox.layout.Box;
 import org.fit.cssbox.layout.ElementBox;
 import org.fit.cssbox.layout.TextBox;
@@ -23,9 +22,7 @@ public class VipsParser {
 	/**
 	 * Default constructor
 	 * 
-	 * @param domAnalyzer
-	 *            Analyzer, that includes DOM tree of page and styles used on
-	 *            page.
+	 * @param viewport Rendered's page viewport            
 	 */
 	public VipsParser(Viewport viewport) {
 		this._viewport = viewport;
@@ -68,6 +65,8 @@ public class VipsParser {
 		_currentVisualStructure = visualStructure;
 		ElementBox elementBox = (ElementBox) visualStructure.getBox();
 		System.out.println(elementBox.getNode().getNodeName());
+		
+		visualStructure.setIsVisualBlock(true);
 		
 		if (applyVipsRules(elementBox))
 		{
@@ -912,5 +911,10 @@ public class VipsParser {
 	public void setSizeTresholdHeight(int sizeTresholdHeight)
 	{
 		this._sizeTresholdHeight = sizeTresholdHeight;
+	}
+	
+	public VisualStructure getVisualStrucure()
+	{
+		return _visualStructure;
 	}
 }

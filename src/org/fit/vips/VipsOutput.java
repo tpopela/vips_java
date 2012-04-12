@@ -24,8 +24,6 @@ import org.fit.cssbox.layout.ElementBox;
 import org.fit.cssbox.layout.Viewport;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.ls.DOMImplementationLS;
-import org.w3c.dom.ls.LSSerializer;
 
 public class VipsOutput {
 
@@ -42,8 +40,8 @@ public class VipsOutput {
 			Transformer transformer = transFactory.newTransformer();
 			StringWriter buffer = new StringWriter();
 			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-				transformer.transform(new DOMSource(node), new StreamResult(buffer));
-			content = buffer.toString();
+			transformer.transform(new DOMSource(node), new StreamResult(buffer));
+			content = buffer.toString().replaceAll("\n", "");
 		} catch (TransformerException e) {
 			e.printStackTrace();
 		}
@@ -51,7 +49,7 @@ public class VipsOutput {
 		return content;
 	}
 
-	public void writeXML(VisualStructure visualStructure, Viewport pageViewport)
+	public void writeXML(VisualStructure visualStructure, Viewport pageViewport, String pageTitle)
 	{
 		try
 		{
@@ -61,9 +59,10 @@ public class VipsOutput {
 			Document doc = docBuilder.newDocument();
 			Element vipsElement = doc.createElement("VIPSPage");
 			
-			String pageTitle = pageViewport.getElement().getElementsByTagName("title").item(0).getNodeValue(); 
+			// TODO ziskat titulek stranky z viewportu pokud to jde
+//			String pageTitle = pageViewport.getRootElement().getElementsByTagName("title").item(0).getNodeValue(); 
 			
-			vipsElement.setAttribute("Url", pageViewport.getBase().toString());
+			vipsElement.setAttribute("Url", pageViewport.getRootBox().getBase().toString());
 			vipsElement.setAttribute("PageTitle", pageTitle);
 			vipsElement.setAttribute("WindowWidth", String.valueOf(pageViewport.getContentWidth()));
 			vipsElement.setAttribute("WindowHeight", String.valueOf(pageViewport.getContentHeight()));
@@ -96,19 +95,30 @@ public class VipsOutput {
 			layoutNode.setAttribute("DOMCldNum", "neznam");
 			layoutNode.setAttribute("FontSize", visualStructure.getFontSize());
 			layoutNode.setAttribute("FontWeight", visualStructure.getFontWeight());
-			layoutNode.setAttribute("BgColor", elementBox.getBgcolor().toString());
+			layoutNode.setAttribute("BgColor", visualStructure.getBgColor());
 			//TODO overit tyto miry dole
 			layoutNode.setAttribute("ObjectRectLeft", String.valueOf(elementBox.getContentOffsetY()));
 			layoutNode.setAttribute("ObjectRectTop", String.valueOf(elementBox.getContentOffsetX()));
 			layoutNode.setAttribute("ObjectRectWidth", String.valueOf(elementBox.getContentWidth()));
 			layoutNode.setAttribute("ObjectRectHeight", String.valueOf(elementBox.getContentHeight()));
-			layoutNode.setAttribute("Content", getContent(elementBox.getElement()));
 			layoutNode.setAttribute("CID", "1-1");
 			layoutNode.setAttribute("order", String.valueOf(elementBox.getOrder()));
+			
+			// TODO disable character escaping - not working yet
+			// Node pi = doc.createProcessingInstruction(StreamResult.PI_DISABLE_OUTPUT_ESCAPING,"");
+			// vipsElement.appendChild(pi);
+			//<xsl:text disable-output-escaping="yes">
+			layoutNode.setAttribute("Content", getContent(elementBox.getElement()));
+			
+			vipsElement.appendChild(layoutNode);
 
 			TransformerFactory transformerFactory = TransformerFactory.newInstance();
 			Transformer transformer = transformerFactory.newTransformer();
+			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			//transformer.setOutputProperty(Result.PI_DISABLE_OUTPUT_ESCAPING, "yes");
 			DOMSource source = new DOMSource(doc);
+		
 			StreamResult result = new StreamResult(new File("VIPSResult.xml"));
 	 
 			transformer.transform(source, result);

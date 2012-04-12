@@ -5,8 +5,6 @@ import java.util.List;
 
 import org.fit.cssbox.layout.Box;
 import org.fit.cssbox.layout.ElementBox;
-import org.fit.cssbox.layout.TextBox;
-import org.w3c.dom.Node;
 
 public class VisualStructure {
 
@@ -49,13 +47,13 @@ public class VisualStructure {
 		addChild(node);
 	}
 	
-	private void setIsVisualBlock()
+	public void setIsVisualBlock(boolean isVisualBlock)
 	{
-		_isVisualBlock = true;
+		_isVisualBlock = isVisualBlock;
 		checkProperties();
 	}
 	
-	private boolean isVisualBlock()
+	public boolean isVisualBlock()
 	{
 		return _isVisualBlock;
 	}
@@ -133,7 +131,12 @@ public class VisualStructure {
 	private void countLinkTextLength(VisualStructure visualStucture)
 	{
 		if (visualStucture.getBox().getNode().getNodeName().equals("a"))
-			_linkTextLen += visualStucture.getBox().getText().length();
+		{
+			int linkLength = visualStucture.getBox().getNode().getTextContent().length();
+			System.out.println(_linkTextLen + " + " + linkLength + "  " + visualStucture.getBox().getNode().getTextContent());
+			_linkTextLen += linkLength;
+			
+		}
 		
 		for (VisualStructure childVisualStructure : visualStucture.getChilds())
 			countLinkTextLength(childVisualStructure);
@@ -145,11 +148,8 @@ public class VisualStructure {
 	 */
 	private void countTextLength(VisualStructure visualStucture)
 	{
-		if (visualStucture.getBox().getNode().getNodeName().equals("a"))
-			_textLen += visualStucture.getBox().getText().length();
-		
-		for (VisualStructure childVisualStructure : visualStucture.getChilds())
-			countTextLength(childVisualStructure);
+		// TODO V ceske verzi www.fit.vutbr.cz je v orginalnim VIPS delka 3802, u me 3810
+		_textLen = visualStucture.getBox().getNode().getTextContent().replaceAll("\n", "").length();
 	}
 	
 	public void addChild(VisualStructure child)
@@ -269,20 +269,31 @@ public class VisualStructure {
 		return _containP;
 	}
 	
+	public String getBgColor()
+	{
+		if (this.getElementBox().getBgcolor() != null)
+			return this.getElementBox().getBgcolor().toString();
+		
+		return this.getElementBox().getStylePropertyValue("background-color").toString();
+	}
+	
 	public String getFontSize()
 	{
 		//TODO osetreni pokud je elementBox vlastne textBox
-		if (this.getElementBox().getStylePropertyValue("font-size") == null)
-			return "";
+		//if (this.getElementBox().getStylePropertyValue("font-size") == null)
+//			return "";
 		
-		return this.getElementBox().getStylePropertyValue("font-size").toString();
+		//return this.getElementBox().getStylePropertyValue("font-size").replace("px", "");
+		return String.valueOf(this.getElementBox().getVisualContext().getFont().getSize());
 	}
 	
 	public String getFontWeight()
 	{
+		//return this.getElementBox().getVisualContext().getFontVariant();
+		
 		if (this.getElementBox().getStylePropertyValue("font-weight") == null)
 			return "";
-		
+	
 		return this.getElementBox().getStylePropertyValue("font-weight").toString();
 	}
 		

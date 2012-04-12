@@ -48,7 +48,6 @@ public class Vips {
 		_browserCanvas = new BrowserCanvas(_domAnalyzer.getRoot(),
 				_domAnalyzer, new java.awt.Dimension(1000, 600), _url);
 		_viewport = ((BrowserCanvas) _browserCanvas).getViewport();
-
 	}
 
 	/*
@@ -70,9 +69,14 @@ public class Vips {
 			getViewport();
 
 			VipsParser vipsParser = new VipsParser(_viewport);
+			VipsOutput vipsOutput = new VipsOutput();
+			
+			String pageTitle = _domAnalyzer.getRoot().getElementsByTagName("title").item(0).getTextContent();
 
 			vipsParser.parse();
-
+			
+			vipsOutput.writeXML(vipsParser.getVisualStrucure(), _viewport, pageTitle);
+	
 			urlStream.close();
 		} catch (Exception e) {
 			System.out.println("Error: " + e.getMessage());
