@@ -26,6 +26,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class VipsOutput {
+	
+	private Document doc = null;
 
 	public VipsOutput() {
 
@@ -48,34 +50,11 @@ public class VipsOutput {
 		
 		return content;
 	}
-
-	public void writeXML(VisualStructure visualStructure, Viewport pageViewport, String pageTitle)
+	
+	private void writeVisualBlocks(Element parent, VisualStructure visualStructure)
 	{
-		try
+		if (visualStructure.isVisualBlock())
 		{
-			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-
-			Document doc = docBuilder.newDocument();
-			Element vipsElement = doc.createElement("VIPSPage");
-			
-			// TODO ziskat titulek stranky z viewportu pokud to jde
-//			String pageTitle = pageViewport.getRootElement().getElementsByTagName("title").item(0).getNodeValue(); 
-			
-			vipsElement.setAttribute("Url", pageViewport.getRootBox().getBase().toString());
-			vipsElement.setAttribute("PageTitle", pageTitle);
-			vipsElement.setAttribute("WindowWidth", String.valueOf(pageViewport.getContentWidth()));
-			vipsElement.setAttribute("WindowHeight", String.valueOf(pageViewport.getContentHeight()));
-			vipsElement.setAttribute("PageRectTop", "neznam");
-			vipsElement.setAttribute("PageRectWidth", String.valueOf(pageViewport.getContentWidth()));
-			vipsElement.setAttribute("PageRectHeight", String.valueOf(pageViewport.getContentHeight()));
-//			vipsElement.setAttribute("PageRectWidth", "840");
-//			vipsElement.setAttribute("PageRectHeight", "928");
-			vipsElement.setAttribute("neworder", "neznam");
-			vipsElement.setAttribute("order", String.valueOf(pageViewport.getOrder()));
-
-			doc.appendChild(vipsElement);
-			
 			Element layoutNode = doc.createElement("LayoutNode");
 			ElementBox elementBox = visualStructure.getElementBox();
 			
@@ -110,8 +89,42 @@ public class VipsOutput {
 			//<xsl:text disable-output-escaping="yes">
 			layoutNode.setAttribute("Content", getContent(elementBox.getElement()));
 			
-			vipsElement.appendChild(layoutNode);
+			parent.appendChild(layoutNode);
+		}
+		
+		for (VisualStructure childVisualStructure : visualStructure.getChilds())
+			writeVisualBlocks(parent, childVisualStructure);
+	}
 
+	public void writeXML(VisualStructure visualStructure, Viewport pageViewport, String pageTitle)
+	{
+		try
+		{
+			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+
+			doc = docBuilder.newDocument();
+			Element vipsElement = doc.createElement("VIPSPage");
+			
+			// TODO ziskat titulek stranky z viewportu pokud to jde
+//			String pageTitle = pageViewport.getRootElement().getElementsByTagName("title").item(0).getNodeValue(); 
+			
+			vipsElement.setAttribute("Url", pageViewport.getRootBox().getBase().toString());
+			vipsElement.setAttribute("PageTitle", pageTitle);
+			vipsElement.setAttribute("WindowWidth", String.valueOf(pageViewport.getContentWidth()));
+			vipsElement.setAttribute("WindowHeight", String.valueOf(pageViewport.getContentHeight()));
+			vipsElement.setAttribute("PageRectTop", "neznam");
+			vipsElement.setAttribute("PageRectWidth", String.valueOf(pageViewport.getContentWidth()));
+			vipsElement.setAttribute("PageRectHeight", String.valueOf(pageViewport.getContentHeight()));
+//			vipsElement.setAttribute("PageRectWidth", "840");
+//			vipsElement.setAttribute("PageRectHeight", "928");
+			vipsElement.setAttribute("neworder", "neznam");
+			vipsElement.setAttribute("order", String.valueOf(pageViewport.getOrder()));
+
+			doc.appendChild(vipsElement);
+			
+			writeVisualBlocks(vipsElement, visualStructure);
+			
 			TransformerFactory transformerFactory = TransformerFactory.newInstance();
 			Transformer transformer = transformerFactory.newTransformer();
 			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");

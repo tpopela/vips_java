@@ -27,7 +27,6 @@ public class Vips {
 	 */
 	private static void getDomTree(InputStream urlStream)
 	{
-
 		DOMSource parser = new DOMSource(urlStream);
 		try
 		{
@@ -44,7 +43,6 @@ public class Vips {
 
 	private static void getViewport()
 	{
-
 		_browserCanvas = new BrowserCanvas(_domAnalyzer.getRoot(),
 				_domAnalyzer, new java.awt.Dimension(1000, 600), _url);
 		_viewport = ((BrowserCanvas) _browserCanvas).getViewport();
