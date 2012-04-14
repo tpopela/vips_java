@@ -75,8 +75,8 @@ public class VipsOutput {
 			layoutNode.setAttribute("FontWeight", visualStructure.getFontWeight());
 			layoutNode.setAttribute("BgColor", visualStructure.getBgColor());
 			//TODO overit tyto miry dole
-			layoutNode.setAttribute("ObjectRectLeft", String.valueOf(elementBox.getContentOffsetY()));
-			layoutNode.setAttribute("ObjectRectTop", String.valueOf(elementBox.getContentOffsetX()));
+			layoutNode.setAttribute("ObjectRectLeft", String.valueOf(elementBox.getAbsoluteContentX()));
+			layoutNode.setAttribute("ObjectRectTop", String.valueOf(elementBox.getAbsoluteContentY()));
 			layoutNode.setAttribute("ObjectRectWidth", String.valueOf(elementBox.getContentWidth()));
 			layoutNode.setAttribute("ObjectRectHeight", String.valueOf(elementBox.getContentHeight()));
 			layoutNode.setAttribute("CID", "1-1");

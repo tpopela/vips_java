@@ -1,3 +1,9 @@
+/*
+ * Tomas Popela, xpopel11, 2012
+ * VIPS - Visual Internet Page Segmentation
+ * Module - VisualStructure.java
+ */
+ 
 package org.fit.vips;
 
 import java.util.ArrayList;

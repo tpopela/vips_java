@@ -73,6 +73,10 @@ public class Vips {
 
 			vipsParser.parse();
 			
+			VipsSeparatorDetector vipsSeparatorDetector = new VipsSeparatorDetector(_viewport.getContentWidth(), _viewport.getContentHeight());
+			vipsSeparatorDetector.fillPool(vipsParser.getVisualStrucure());
+			vipsSeparatorDetector.saveToImage();
+			
 			vipsOutput.writeXML(vipsParser.getVisualStrucure(), _viewport, pageTitle);
 	
 			urlStream.close();
