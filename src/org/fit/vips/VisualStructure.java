@@ -17,16 +17,16 @@ public class VisualStructure {
 	//node's Degree Of Coherence
 	private int _DoC = 0;
 
-	//if node contains image
-	private boolean _containImg = false;
+	//number of images in node
+	private int _containImg = 0;
 	//if node is image
 	private boolean _isImg = false;
 	//if node is visual block
 	private boolean _isVisualBlock = false;
 	//if node contains table
 	private boolean _containTable = false;
-	//if node contains paragraph
-	private boolean _containP = false;
+	//number of paragraphs in node
+	private int _containP = 0;
 	//if node was already divided
 	private boolean _alreadyDivided = false;
 	//if node can be divided
@@ -91,7 +91,7 @@ public class VisualStructure {
 		if (visualStucture.getBox().getNode().getNodeName().equals("img"))
 		{
 			visualStucture._isImg = true;
-			this._containImg = true;
+			this._containImg++;
 		}
 		
 		for (VisualStructure childVisualStructure : visualStucture.getChilds())
@@ -118,7 +118,7 @@ public class VisualStructure {
 	private void checkContainP(VisualStructure visualStucture)
 	{
 		if (visualStucture.getBox().getNode().getNodeName().equals("p"))
-			this._containP = true;
+			this._containP++;
 		
 		for (VisualStructure childVisualStructure : visualStucture.getChilds())
 			checkContainP(childVisualStructure);
@@ -244,7 +244,7 @@ public class VisualStructure {
 		return _isImg;
 	}
 	
-	public boolean containImg()
+	public int containImg()
 	{
 		return _containImg;
 	}
@@ -264,7 +264,7 @@ public class VisualStructure {
 		return _linkTextLen;
 	}
 	
-	public boolean containP()
+	public int containP()
 	{
 		return _containP;
 	}

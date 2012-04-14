@@ -94,7 +94,7 @@ public class VipsParser {
 		}
 		else
 		{
-			if (visualStructure.isDividable()) 
+			if (visualStructure.isDividable())
 			{
 				System.out.println("Element " + elementBox.getNode().getNodeName() + " is visual block");
 				visualStructure.setIsVisualBlock(true);

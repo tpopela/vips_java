@@ -33,7 +33,7 @@ public class VipsOutput {
 
 	}
 	
-	private String getContent(Element node)
+	private String getSource(Element node)
 	{
 		String content = "";
 		try
@@ -60,7 +60,6 @@ public class VipsOutput {
 			
 			if (elementBox == null)
 				return;
-				//continue;
 			
 			layoutNode.setAttribute("FrameSourceIndex", "neznam");
 			layoutNode.setAttribute("SourceIndex", "neznam");
@@ -87,7 +86,8 @@ public class VipsOutput {
 			// Node pi = doc.createProcessingInstruction(StreamResult.PI_DISABLE_OUTPUT_ESCAPING,"");
 			// vipsElement.appendChild(pi);
 			//<xsl:text disable-output-escaping="yes">
-			layoutNode.setAttribute("Content", getContent(elementBox.getElement()));
+			layoutNode.setAttribute("SRC", getSource(elementBox.getElement()));
+			layoutNode.setAttribute("Content", elementBox.getNode().getTextContent());
 			
 			parent.appendChild(layoutNode);
 		}
@@ -116,8 +116,6 @@ public class VipsOutput {
 			vipsElement.setAttribute("PageRectTop", "neznam");
 			vipsElement.setAttribute("PageRectWidth", String.valueOf(pageViewport.getContentWidth()));
 			vipsElement.setAttribute("PageRectHeight", String.valueOf(pageViewport.getContentHeight()));
-//			vipsElement.setAttribute("PageRectWidth", "840");
-//			vipsElement.setAttribute("PageRectHeight", "928");
 			vipsElement.setAttribute("neworder", "neznam");
 			vipsElement.setAttribute("order", String.valueOf(pageViewport.getOrder()));
 
