@@ -253,7 +253,8 @@ public class VipsParser {
 		
 		System.out.println("Applying VIPS rules on " + node.getNode().getNodeName() + " node");
 		
-		if (isInlineNode(node))
+		if (!node.isBlock())
+		//if (isInlineNode(node))
 		{
 			//????????
 			retVal = applyInlineTextNodeVipsRules(node);

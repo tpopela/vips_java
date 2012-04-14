@@ -271,30 +271,32 @@ public class VisualStructure {
 	
 	public String getBgColor()
 	{
-		if (this.getElementBox().getBgcolor() != null)
-			return this.getElementBox().getBgcolor().toString();
+		String backgroundColor = this.getElementBox().getStylePropertyValue("background-color");
 		
-		return this.getElementBox().getStylePropertyValue("background-color").toString();
+		if (backgroundColor.isEmpty())
+			backgroundColor = "#ffffff";
+		
+		return backgroundColor;
 	}
 	
 	public String getFontSize()
 	{
-		//TODO osetreni pokud je elementBox vlastne textBox
-		//if (this.getElementBox().getStylePropertyValue("font-size") == null)
-//			return "";
-		
-		//return this.getElementBox().getStylePropertyValue("font-size").replace("px", "");
 		return String.valueOf(this.getElementBox().getVisualContext().getFont().getSize());
 	}
 	
 	public String getFontWeight()
 	{
-		//return this.getElementBox().getVisualContext().getFontVariant();
+		String fontWeight = "";
 		
 		if (this.getElementBox().getStylePropertyValue("font-weight") == null)
-			return "";
-	
-		return this.getElementBox().getStylePropertyValue("font-weight").toString();
+			return fontWeight;
+		
+		fontWeight = this.getElementBox().getStylePropertyValue("font-weight");
+		
+		if (fontWeight.isEmpty())
+			fontWeight = "normal";
+		
+		return fontWeight;
 	}
 		
 }
