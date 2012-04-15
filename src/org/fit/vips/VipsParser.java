@@ -36,6 +36,19 @@ public class VipsParser {
 	}
 
 	/**
+	 * Constructor, where we can define element's size treshold
+	 * @param viewport	Rendered's page viewport
+	 * @param sizeTresholdWidth Element's width treshold
+	 * @param sizeTresholdHeight Element's height treshold
+	 */
+	public VipsParser(Viewport viewport, int sizeTresholdWidth, int sizeTresholdHeight) {
+		this._viewport = viewport;
+		this._visualStructure = new VisualStructure();
+		this._sizeTresholdHeight = sizeTresholdHeight;
+		this._sizeTresholdWidth = sizeTresholdWidth;
+	}
+
+	/**
 	 * Starts visual page segmentation on given page
 	 */
 	public void parse()
@@ -43,14 +56,18 @@ public class VipsParser {
 		if (_viewport != null)
 		{
 			constructVisualStructureTree(_viewport.getElementBoxByName("body", false), _visualStructure);
-			checkViewportTree(_visualStructure);
+			divideVisualStructureTree(_visualStructure);
 			getVisualBlockCount(_visualStructure);
 			System.out.println(String.valueOf(visualBlockCount));
 		}
 		else
-			System.out.print("Page's ViewPort is not defined");
+			System.err.print("Page's ViewPort is not defined");
 	}
-	
+
+	/**
+	 * Counts number of visual blocks in visual structure
+	 * @param visualStructure Visual structure
+	 */
 	private void getVisualBlockCount(VisualStructure visualStructure)
 	{
 		if (visualStructure.isVisualBlock())
@@ -62,7 +79,14 @@ public class VipsParser {
 				getVisualBlockCount(visualStructureChild);
 		}
 	}
-	
+
+	/**
+	 * Construct visual structure from viewport.
+	 * <p>
+	 * Starts from &lt;body&gt; element.
+	 * @param element Box that represents element
+	 * @param node Visual structure tree node
+	 */
 	private void constructVisualStructureTree(Box element, VisualStructure node)
 	{
 		node.setBox(element);
@@ -76,24 +100,31 @@ public class VipsParser {
 			}
 		}
 	}
-	
-	private void checkViewportTree(VisualStructure visualStructure)
+
+	/**
+	 * Tries to divide DOM elements and finds visual blocks.
+	 * @param visualStructure Visual structure
+	 */
+	private void divideVisualStructureTree(VisualStructure visualStructure)
 	{
 		_currentVisualStructure = visualStructure;
 		ElementBox elementBox = (ElementBox) visualStructure.getBox();
 		System.out.println(elementBox.getNode().getNodeName());
-		
+	
+		// With VIPS rules it tries to determine if element is dividable
 		if (applyVipsRules(elementBox) && visualStructure.isDividable() && !visualStructure.isVisualBlock())
 		{
+			// if element is dividable, let's divide it
 			_currentVisualStructure.setAlreadyDivided(true);
 			for (VisualStructure visualStructureChild : visualStructure.getChilds())
 			{
 				if (!(visualStructureChild.getBox() instanceof TextBox))
-					checkViewportTree(visualStructureChild);
+					divideVisualStructureTree(visualStructureChild);
 			}
 		}
 		else
 		{
+			// if element is not dividable
 			if (visualStructure.isDividable())
 			{
 				System.out.println("Element " + elementBox.getNode().getNodeName() + " is visual block");
@@ -247,6 +278,11 @@ public class VipsParser {
 		return cnt;
 	}
 	
+	/**
+	 * On different DOM nodes it applies different sets of VIPS rules.
+	 * @param node DOM node
+	 * @return Returns true if element is dividable, otherwise false.
+	 */
 	private boolean applyVipsRules(ElementBox node)
 	{
 		boolean retVal = false;
@@ -254,11 +290,8 @@ public class VipsParser {
 		System.out.println("Applying VIPS rules on " + node.getNode().getNodeName() + " node");
 		
 		if (!node.isBlock())
-		//if (isInlineNode(node))
 		{
-			//????????
 			retVal = applyInlineTextNodeVipsRules(node);
-			//retVal = false;
 		}
 		else if (node.getElement().getNodeName().equals("table"))
 		{
@@ -278,6 +311,7 @@ public class VipsParser {
 		}
 		else if (node.getElement().getNodeName().substring(0, 1).equals("X"))
 		{
+			//????????????????????????????????
 			retVal = false;
 		}
 		else
