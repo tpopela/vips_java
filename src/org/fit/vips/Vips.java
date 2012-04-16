@@ -6,15 +6,16 @@
 
 package org.fit.vips;
 
-import java.io.*;
-import java.net.*;
-import org.w3c.dom.*;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 
 import org.fit.cssbox.css.CSSNorm;
 import org.fit.cssbox.css.DOMAnalyzer;
 import org.fit.cssbox.demo.DOMSource;
 import org.fit.cssbox.layout.BrowserCanvas;
 import org.fit.cssbox.layout.Viewport;
+import org.w3c.dom.Document;
 
 public class Vips {
 	private static URL _url = null;
@@ -68,19 +69,25 @@ public class Vips {
 
 			VipsParser vipsParser = new VipsParser(_viewport);
 			VipsOutput vipsOutput = new VipsOutput();
-			
+
 			String pageTitle = _domAnalyzer.getRoot().getElementsByTagName("title").item(0).getTextContent();
 
 			vipsParser.parse();
-			
+
 			VipsSeparatorDetector vipsSeparatorDetector = new VipsSeparatorDetector(_viewport.getContentWidth(), _viewport.getContentHeight());
-			vipsSeparatorDetector.detectHorizontalSeparators(vipsParser.getVisualStrucure());
-			//vipsSeparatorDetector.detectVerticalSeparators(vipsParser.getVisualStrucure());
-			vipsSeparatorDetector.fillPool(vipsParser.getVisualStrucure());
-			vipsSeparatorDetector.saveToImage();
-			
+
+			VisualStructure visualStructure = vipsParser.getVisualStrucure();
+
+			vipsSeparatorDetector.fillPool(visualStructure);
+			vipsSeparatorDetector.saveToImage("pool");
+			vipsSeparatorDetector.detectHorizontalSeparators(visualStructure);
+			vipsSeparatorDetector.detectVerticalSeparators(visualStructure);
+			vipsSeparatorDetector.exportHorizontalSeparatorsToImage();
+			vipsSeparatorDetector.exportVerticalSeparatorsToImage();
+			vipsSeparatorDetector.exportAllToImage(visualStructure);
+
 			vipsOutput.writeXML(vipsParser.getVisualStrucure(), _viewport, pageTitle);
-	
+
 			urlStream.close();
 		} catch (Exception e) {
 			System.out.println("Error: " + e.getMessage());
