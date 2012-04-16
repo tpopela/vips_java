@@ -74,7 +74,7 @@ public class Vips {
 
 			vipsParser.parse();
 
-			VipsSeparatorDetector vipsSeparatorDetector = new VipsSeparatorDetector(_viewport.getContentWidth(), _viewport.getContentHeight());
+			VipsSeparatorGraphicsDetector vipsSeparatorDetector = new VipsSeparatorGraphicsDetector(_viewport.getContentWidth(), _viewport.getContentHeight());
 
 			VisualStructure visualStructure = vipsParser.getVisualStrucure();
 
