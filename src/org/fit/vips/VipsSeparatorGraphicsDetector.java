@@ -270,7 +270,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 					if (blockEnd < separator.startPoint)
 						break;
 					// if separator starts in the middle of block
-					if (blockStart < separator.startPoint && blockEnd > separator.startPoint)
+					if (blockStart <= separator.startPoint && blockEnd > separator.startPoint)
 					{
 						// change separator start's point coordinate
 						separator.startPoint = blockEnd+1;
@@ -601,6 +601,8 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 		int diff = Math.abs(adjacentElements.get(0).getFontSize() - adjacentElements.get(1).getFontSize());
 		diff /= 2;
 		separator.weight += 2 * diff;
+
+		//TODO font weight
 
 		if (adjacentElements.get(0).getFontSize() < adjacentElements.get(1).getFontSize())
 			separator.weight += 2;
