@@ -80,6 +80,7 @@ public class Vips {
 
 			vipsSeparatorDetector.fillPool(visualStructure);
 			vipsSeparatorDetector.saveToImage("pool");
+			vipsSeparatorDetector.setVisualStructure(visualStructure);
 			vipsSeparatorDetector.detectHorizontalSeparators(visualStructure);
 			vipsSeparatorDetector.detectVerticalSeparators(visualStructure);
 			vipsSeparatorDetector.exportHorizontalSeparatorsToImage();

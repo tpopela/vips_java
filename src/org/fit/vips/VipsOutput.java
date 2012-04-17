@@ -26,13 +26,13 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class VipsOutput {
-	
+
 	private Document doc = null;
 
 	public VipsOutput() {
 
 	}
-	
+
 	private String getSource(Element node)
 	{
 		String content = "";
@@ -47,20 +47,20 @@ public class VipsOutput {
 		} catch (TransformerException e) {
 			e.printStackTrace();
 		}
-		
+
 		return content;
 	}
-	
+
 	private void writeVisualBlocks(Element parent, VisualStructure visualStructure)
 	{
 		if (visualStructure.isVisualBlock())
 		{
 			Element layoutNode = doc.createElement("LayoutNode");
 			ElementBox elementBox = visualStructure.getElementBox();
-			
+
 			if (elementBox == null)
 				return;
-			
+
 			layoutNode.setAttribute("FrameSourceIndex", "neznam");
 			layoutNode.setAttribute("SourceIndex", "neznam");
 			layoutNode.setAttribute("DoC", String.valueOf(visualStructure.getDoC()));
@@ -71,7 +71,7 @@ public class VipsOutput {
 			layoutNode.setAttribute("TextLen", String.valueOf(visualStructure.getTextLength()));
 			layoutNode.setAttribute("LinkTextLen", String.valueOf(visualStructure.getLinkTextLength()));
 			layoutNode.setAttribute("DOMCldNum", "neznam");
-			layoutNode.setAttribute("FontSize", visualStructure.getFontSize());
+			layoutNode.setAttribute("FontSize", String.valueOf(visualStructure.getFontSize()));
 			layoutNode.setAttribute("FontWeight", visualStructure.getFontWeight());
 			layoutNode.setAttribute("BgColor", visualStructure.getBgColor());
 			//TODO overit tyto miry dole
@@ -81,17 +81,17 @@ public class VipsOutput {
 			layoutNode.setAttribute("ObjectRectHeight", String.valueOf(elementBox.getContentHeight()));
 			layoutNode.setAttribute("CID", "1-1");
 			layoutNode.setAttribute("order", String.valueOf(elementBox.getOrder()));
-			
+
 			// TODO disable character escaping - not working yet
 			// Node pi = doc.createProcessingInstruction(StreamResult.PI_DISABLE_OUTPUT_ESCAPING,"");
 			// vipsElement.appendChild(pi);
 			//<xsl:text disable-output-escaping="yes">
 			layoutNode.setAttribute("SRC", getSource(elementBox.getElement()));
 			layoutNode.setAttribute("Content", elementBox.getNode().getTextContent());
-			
+
 			parent.appendChild(layoutNode);
 		}
-		
+
 		for (VisualStructure childVisualStructure : visualStructure.getChilds())
 			writeVisualBlocks(parent, childVisualStructure);
 	}
@@ -105,10 +105,10 @@ public class VipsOutput {
 
 			doc = docBuilder.newDocument();
 			Element vipsElement = doc.createElement("VIPSPage");
-			
+
 			// TODO ziskat titulek stranky z viewportu pokud to jde
-//			String pageTitle = pageViewport.getRootElement().getElementsByTagName("title").item(0).getNodeValue(); 
-			
+			//			String pageTitle = pageViewport.getRootElement().getElementsByTagName("title").item(0).getNodeValue();
+
 			vipsElement.setAttribute("Url", pageViewport.getRootBox().getBase().toString());
 			vipsElement.setAttribute("PageTitle", pageTitle);
 			vipsElement.setAttribute("WindowWidth", String.valueOf(pageViewport.getContentWidth()));
@@ -120,20 +120,20 @@ public class VipsOutput {
 			vipsElement.setAttribute("order", String.valueOf(pageViewport.getOrder()));
 
 			doc.appendChild(vipsElement);
-			
+
 			writeVisualBlocks(vipsElement, visualStructure);
-			
+
 			TransformerFactory transformerFactory = TransformerFactory.newInstance();
 			Transformer transformer = transformerFactory.newTransformer();
 			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			//transformer.setOutputProperty(Result.PI_DISABLE_OUTPUT_ESCAPING, "yes");
 			DOMSource source = new DOMSource(doc);
-		
+
 			StreamResult result = new StreamResult(new File("VIPSResult.xml"));
-	 
+
 			transformer.transform(source, result);
-		} 
+		}
 		catch (ParserConfigurationException e)
 		{
 			// TODO Auto-generated catch block
@@ -147,7 +147,7 @@ public class VipsOutput {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
- 
+
 
 	}
 }

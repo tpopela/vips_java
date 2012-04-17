@@ -6,6 +6,9 @@
 
 package org.fit.vips;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.fit.cssbox.layout.Box;
 import org.fit.cssbox.layout.ElementBox;
 import org.fit.cssbox.layout.TextBox;
@@ -17,7 +20,7 @@ public class VipsParser {
 	private VisualStructure _visualStructure = null;
 	private VisualStructure _currentVisualStructure = null;
 	private VisualStructure _tempVisualStructure = null;
-	
+
 	private int _sizeTresholdWidth = 0;
 	private int _sizeTresholdHeight = 0;
 	private Viewport _viewport = null;
@@ -26,7 +29,7 @@ public class VipsParser {
 	/**
 	 * Default constructor
 	 * 
-	 * @param viewport Rendered's page viewport            
+	 * @param viewport Rendered's page viewport
 	 */
 	public VipsParser(Viewport viewport) {
 		this._viewport = viewport;
@@ -72,12 +75,29 @@ public class VipsParser {
 	{
 		if (visualStructure.isVisualBlock())
 			visualBlockCount++;
-			
+
 		for (VisualStructure visualStructureChild : visualStructure.getChilds())
 		{
 			if (!(visualStructureChild.getBox() instanceof TextBox))
 				getVisualBlockCount(visualStructureChild);
 		}
+	}
+
+	private void findVisualBlocks(VisualStructure visualStructure, List<VisualStructure> list)
+	{
+		if (visualStructure.isVisualBlock())
+			list.add(visualStructure);
+
+		for (VisualStructure childVisualStructure : visualStructure.getChilds())
+			findVisualBlocks(childVisualStructure, list);
+	}
+
+	public List<VisualStructure> getVisualBlocks()
+	{
+		List<VisualStructure> list = new ArrayList<VisualStructure>();
+		findVisualBlocks(_visualStructure, list);
+
+		return list;
 	}
 
 	/**
@@ -90,10 +110,10 @@ public class VipsParser {
 	private void constructVisualStructureTree(Box element, VisualStructure node)
 	{
 		node.setBox(element);
-		
+
 		if (! (element instanceof TextBox))
 		{
-			for (Box box: ((ElementBox) element).getSubBoxList()) 
+			for (Box box: ((ElementBox) element).getSubBoxList())
 			{
 				node.addChild(new VisualStructure());
 				constructVisualStructureTree(box, node.getChilds().get(node.getChilds().size()-1));
@@ -110,7 +130,7 @@ public class VipsParser {
 		_currentVisualStructure = visualStructure;
 		ElementBox elementBox = (ElementBox) visualStructure.getBox();
 		System.out.println(elementBox.getNode().getNodeName());
-	
+
 		// With VIPS rules it tries to determine if element is dividable
 		if (applyVipsRules(elementBox) && visualStructure.isDividable() && !visualStructure.isVisualBlock())
 		{
@@ -131,10 +151,15 @@ public class VipsParser {
 				visualStructure.setIsVisualBlock(true);
 			}
 			else
-				System.out.println("Element " + elementBox.getNode().getNodeName() + " is not dividable");
+			{
+				if (visualStructure.isVisualBlock())
+					System.out.println("Element " + elementBox.getNode().getNodeName() + " is visual block");
+				else
+					System.out.println("Element " + elementBox.getNode().getNodeName() + " is not dividable");
+			}
 		}
 	}
-	
+
 	/**
 	 * Checks, if node is a valid node.
 	 * <p>
@@ -150,10 +175,10 @@ public class VipsParser {
 	{
 		if (node.getHeight() > 0 && node.getWidth() > 0)
 			return true;
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * Checks, if node is a text node.
 	 * 
@@ -181,14 +206,14 @@ public class VipsParser {
 	{
 		if (node.isBlock())
 			return false;
-		
-		for (Box childNode : node.getSubBoxList()) 
+
+		for (Box childNode : node.getSubBoxList())
 		{
 			if (!(childNode instanceof TextBox))
 				if (!isTextNode((ElementBox) childNode))
 					return false;
 		}
-	
+
 		return true;
 	}
 
@@ -204,18 +229,18 @@ public class VipsParser {
 	 * @return True, if node is virtual text node, otherwise false.
 	 */
 	private boolean isVirtualTextNode2(ElementBox node)
-	{		
+	{
 		if (node.isBlock())
 			return false;
-		
+
 		for (Box childNode : node.getSubBoxList())
 			if (!isTextNode((ElementBox) childNode) ||
-				!isVirtualTextNode1((ElementBox) childNode))
+					!isVirtualTextNode1((ElementBox) childNode))
 				return false;
-		
+
 		return true;
 	}
-	
+
 	/**
 	 * Checks, if node is virtual text node.
 	 * 
@@ -230,10 +255,10 @@ public class VipsParser {
 			return true;
 		if (isVirtualTextNode2(node))
 			return true;
-		
-		return false;			
+
+		return false;
 	}
-	
+
 	/*
 	 * Checks if node has valid children nodes
 	 */
@@ -241,16 +266,21 @@ public class VipsParser {
 	{
 		if (node.getSubBoxList().isEmpty())
 			return false;
-		
+
+		int cnt = 0;
+
 		for (Box childNode : node.getSubBoxList())
 		{
 			if (childNode instanceof TextBox)
+			{
+				cnt++;
 				continue;
-			if (!isValidNode((ElementBox) childNode))
-				return false;
-			
+			}
+			if (isValidNode((ElementBox) childNode))
+				cnt++;
 		}
-		return true;
+
+		return (cnt > 0) ? true : false;
 	}
 
 	/*
@@ -262,11 +292,11 @@ public class VipsParser {
 
 		if (node.getSubBoxList().isEmpty())
 			return cnt;
-		
+
 		for (Box childNode : node.getSubBoxList())
 		{
 			//TODO nebo text neni validni uzel?
-			if (childNode instanceof TextBox) 
+			if (childNode instanceof TextBox)
 			{
 				cnt++;
 				continue;
@@ -277,7 +307,7 @@ public class VipsParser {
 
 		return cnt;
 	}
-	
+
 	/**
 	 * On different DOM nodes it applies different sets of VIPS rules.
 	 * @param node DOM node
@@ -286,9 +316,12 @@ public class VipsParser {
 	private boolean applyVipsRules(ElementBox node)
 	{
 		boolean retVal = false;
-		
+
+		if (node.getNode().getNodeName().equals("Xdiv"))
+			System.out.println("aaa");
+
 		System.out.println("Applying VIPS rules on " + node.getNode().getNodeName() + " node");
-		
+
 		if (!node.isBlock())
 		{
 			retVal = applyInlineTextNodeVipsRules(node);
@@ -300,7 +333,7 @@ public class VipsParser {
 		else if (node.getElement().getNodeName().equals("#tr"))
 		{
 			retVal = applyTrNodeVipsRules(node);
-		}		
+		}
 		else if (node.getElement().getNodeName().equals("#td"))
 		{
 			retVal = applyTdNodeVipsRules(node);
@@ -309,205 +342,206 @@ public class VipsParser {
 		{
 			retVal = applyPNodeVipsRules(node);
 		}
-		else if (node.getElement().getNodeName().substring(0, 1).equals("X"))
-		{
-			//????????????????????????????????
-			retVal = false;
-		}
+		//		else if (node.getElement().getNodeName().substring(0, 1).equals("X"))
+		//{
+		//????????????????????????????????
+		//			retVal = false;
+		//			retVal = applyOtherNodeVipsRules(node);
+		//}
 		else
 		{
 			retVal = applyOtherNodeVipsRules(node);
 		}
-		
+
 		return retVal;
 	}
-	
+
 	private boolean applyOtherNodeVipsRules(ElementBox node)
 	{
-		// 1 2 3 4 6 8 9 11 
-		
+		// 1 2 3 4 6 8 9 11
+
 		if (ruleOne(node))
 			return true;
-			
+
 		if (ruleTwo(node))
 			return true;
-		
+
 		if (ruleThree(node))
 			return true;
-		
+
 		if (ruleFour(node))
 			return true;
-		
+
 		if (ruleSix(node))
 			return true;
-			
+
 		if (ruleEight(node))
 			return true;
-		
+
 		if (ruleNine(node))
 			return true;
-		
+
 		if (ruleEleven(node))
 			return true;
-		
+
 		return false;
 	}
 
 	private boolean applyPNodeVipsRules(ElementBox node)
 	{
-		// 1 2 3 4 5 6 8 9 11 
-		
+		// 1 2 3 4 5 6 8 9 11
+
 		if (ruleOne(node))
 			return true;
-			
+
 		if (ruleTwo(node))
 			return true;
-		
+
 		if (ruleThree(node))
 			return true;
-		
+
 		if (ruleFour(node))
 			return true;
-		
+
 		if (ruleFive(node))
 			return true;
-		
+
 		if (ruleSix(node))
 			return true;
-			
+
 		if (ruleSeven(node))
 			return true;
-		
+
 		if (ruleEight(node))
 			return true;
-		
+
 		if (ruleNine(node))
 			return true;
-		
+
 		if (ruleTen(node))
 			return true;
-		
+
 		if (ruleEleven(node))
 			return true;
-		
+
 		if (ruleTwelve(node))
 			return true;
-		
+
 		return false;
 	}
 
 	private boolean applyTdNodeVipsRules(ElementBox node)
 	{
-		// 1 2 3 4 8 9 10 12 
-		
+		// 1 2 3 4 8 9 10 12
+
 		if (ruleOne(node))
 			return true;
-			
+
 		if (ruleTwo(node))
 			return true;
-		
+
 		if (ruleThree(node))
 			return true;
-		
+
 		if (ruleFour(node))
 			return true;
-		
+
 		if (ruleEight(node))
 			return true;
-		
+
 		if (ruleNine(node))
 			return true;
-		
+
 		if (ruleTen(node))
 			return true;
-		
+
 		if (ruleTwelve(node))
 			return true;
-		
+
 		return false;
 	}
 
 	private boolean applyTrNodeVipsRules(ElementBox node)
 	{
-		// 1 2 3 7 9 12 
-		
+		// 1 2 3 7 9 12
+
 		if (ruleOne(node))
 			return true;
-			
+
 		if (ruleTwo(node))
 			return true;
-		
+
 		if (ruleThree(node))
 			return true;
-		
+
 		if (ruleSeven(node))
 			return true;
-		
+
 		if (ruleNine(node))
 			return true;
-		
+
 		if (ruleTwelve(node))
 			return true;
-		
+
 		return false;
 	}
 
 	private boolean applyTableNodeVipsRules(ElementBox node)
 	{
-		// 1 2 3 7 9 12 
-		
+		// 1 2 3 7 9 12
+
 		if (ruleOne(node))
 			return true;
-			
+
 		if (ruleTwo(node))
 			return true;
-		
+
 		if (ruleThree(node))
 			return true;
-		
+
 		if (ruleSeven(node))
 			return true;
-		
+
 		if (ruleNine(node))
 			return true;
-		
+
 		if (ruleTwelve(node))
 			return true;
-		
+
 		return false;
 	}
 
 	private boolean applyInlineTextNodeVipsRules(ElementBox node)
 	{
-		// 1 2 3 4 5 6 8 9 11 
-		
+		// 1 2 3 4 5 6 8 9 11
+
 		if (ruleOne(node))
 			return true;
-			
+
 		if (ruleTwo(node))
 			return true;
-		
+
 		if (ruleThree(node))
 			return true;
-		
+
 		if (ruleFour(node))
 			return true;
-		
+
 		if (ruleFive(node))
 			return true;
-		
+
 		if (ruleSix(node))
 			return true;
-			
+
 		if (ruleEight(node))
 			return true;
-		
+
 		if (ruleNine(node))
 			return true;
-		
+
 		if (ruleTwelve(node))
 			return true;
-		
+
 		return false;
 	}
 
@@ -525,13 +559,15 @@ public class VipsParser {
 	private boolean ruleOne(ElementBox node)
 	{
 		System.out.println("Applying rule One on " + node.getNode().getNodeName() + " node");
-		
+
 		if (!isTextNode(node))
+		{
 			if (!hasValidChildNodes(node))
 			{
 				_currentVisualStructure.setIsDividable(false);
 				return true;
 			}
+		}
 
 		return false;
 	}
@@ -550,7 +586,7 @@ public class VipsParser {
 	private boolean ruleTwo(ElementBox node)
 	{
 		System.out.println("Applying rule Two on " + node.getNode().getNodeName() + " node");
-		
+
 		if (numberOfValidChildNodes(node) == 1)
 		{
 			if (node.getSubBox(0) instanceof TextBox)
@@ -577,7 +613,19 @@ public class VipsParser {
 	private boolean ruleThree(ElementBox node)
 	{
 		System.out.println("Applying rule Three on " + node.getNode().getNodeName() + " node");
-		// ???????????????????????????????????????????????
+
+		if (!node.isRootElement())
+			return false;
+
+		for (VisualStructure visualStructure : _visualStructure.getChilds())
+		{
+			if (visualStructure.getBox().getNode().getNodeName().equals(node.getNode().getNodeName()))
+			{
+				if (visualStructure.getBox().getNode().getChildNodes().getLength() == node.getNode().getChildNodes().getLength())
+					return true;
+			}
+		}
+
 		return false;
 	}
 
@@ -585,8 +633,8 @@ public class VipsParser {
 	 * VIPS Rule Four
 	 * <p>
 	 * If all of the child nodes of the DOM node are text nodes or virtual text
-	 * nodes, do not divide the node. <br> 
-	 * If the font size and font weight of all these child nodes are same, set 
+	 * nodes, do not divide the node. <br>
+	 * If the font size and font weight of all these child nodes are same, set
 	 * the DoC of the extracted block to 10.
 	 * Otherwise, set the DoC of this extracted block to 9.
 	 * 
@@ -598,57 +646,78 @@ public class VipsParser {
 	private boolean ruleFour(ElementBox node)
 	{
 		System.out.println("Applying rule Four on " + node.getNode().getNodeName() + " node");
-		
+
 		if (node.getSubBoxList().isEmpty())
 			return false;
-		
+
 		for (Box box : node.getSubBoxList())
 		{
 			if (box instanceof TextBox)
 				continue;
 			if (!isTextNode((ElementBox) box) ||
-				!isVirtualTextNode((ElementBox) box))
+					!isVirtualTextNode((ElementBox) box))
 				return false;
 		}
-		
-		_currentVisualStructure.setIsVisualBlock(true);
-	
-		if (node.getStylePropertyValue("font-weight") == null)
-			return false;
 
-		if (node.getStylePropertyValue("font-size") == null)
-			return false;
-		
-		String fontWeight = node.getStylePropertyValue("font-weight").toString();
-		String fontSize = node.getStylePropertyValue("font-size").toString();
-		
+		_currentVisualStructure.setIsVisualBlock(true);
+		_currentVisualStructure.setIsDividable(false);
+
+		String fontWeight = "";
+		int fontSize = 0;
+
 		for (Box childNode : node.getSubBoxList())
 		{
+			int childFontSize = childNode.getVisualContext().getFont().getSize();
+
 			if (childNode instanceof TextBox)
+			{
+				if (fontSize > 0)
+				{
+					if (fontSize != childFontSize)
+					{
+						_currentVisualStructure.setDoC(9);
+						break;
+					}
+					else
+						_currentVisualStructure.setDoC(10);
+				}
+				else
+					fontSize = childFontSize;
 				continue;
-		
+			}
+
 			ElementBox child = (ElementBox) childNode;
-			
+
 			if (child.getStylePropertyValue("font-weight") == null)
 				return false;
-	
-			if (child.getStylePropertyValue("font-size") == null)
-				return false;
-			
-			if (child.getStylePropertyValue("font-weight").toString().equals(fontWeight) &&
-			    child.getStylePropertyValue("font-size").toString().equals(fontSize))
-				_currentVisualStructure.setDoC(10);
+
+			if (fontSize > 0)
+			{
+				if (child.getStylePropertyValue("font-weight").toString().equals(fontWeight) &&
+						childFontSize == fontSize)
+				{
+					_currentVisualStructure.setDoC(10);
+				}
+				else
+				{
+					_currentVisualStructure.setDoC(9);
+					break;
+				}
+			}
 			else
-				_currentVisualStructure.setDoC(9);
+			{
+				fontWeight = child.getStylePropertyValue("font-weight").toString();
+				fontSize = childFontSize;
+			}
 		}
-		
+
 		return true;
 	}
 
 	/**
 	 * VIPS Rule Five
 	 * <p>
-	 * If one of the child nodes of the DOM node is line-break node, then 
+	 * If one of the child nodes of the DOM node is line-break node, then
 	 * divide this DOM node.
 	 * 
 	 * @param node
@@ -659,21 +728,21 @@ public class VipsParser {
 	private boolean ruleFive(ElementBox node)
 	{
 		System.out.println("Applying rule Five on " + node.getNode().getNodeName() + " node");
-		
+
 		if (node.getSubBoxList().isEmpty())
 			return false;
-	
+
 		for (Box childNode : node.getSubBoxList())
 			if (childNode.isBlock())
 				return true;
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * VIPS Rule Six
 	 * <p>
-	 * If one of the child nodes of the DOM node has HTML tag &lt;hr&gt;, then 
+	 * If one of the child nodes of the DOM node has HTML tag &lt;hr&gt;, then
 	 * divide this DOM node
 	 * 
 	 * @param node
@@ -686,21 +755,21 @@ public class VipsParser {
 		System.out.println("Applying rule Six on " + node.getNode().getNodeName() + " node");
 		if (node.getSubBoxList().isEmpty())
 			return false;
-		
+
 		for (Box childNode : node.getSubBoxList())
 			if (childNode.getNode().getNodeName().equals("hr"))
 				return true;
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * VIPS Rule Seven
 	 * <p>
-	 * If the background color of this node is different from one of its 
-	 * children’s, divide this node and at the same time, the child node with 
+	 * If the background color of this node is different from one of its
+	 * children’s, divide this node and at the same time, the child node with
 	 * different background color will not be divided in this round.
-	 * Set the DoC value (6-8) for the child node based on the &lt;html&gt; 
+	 * Set the DoC value (6-8) for the child node based on the &lt;html&gt;
 	 * tag of the child node and the size of the child node.
 	 * 
 	 * @param node
@@ -713,30 +782,32 @@ public class VipsParser {
 		System.out.println("Applying rule Seven on " + node.getNode().getNodeName() + " node");
 		if (node.getSubBoxList().isEmpty())
 			return false;
-		
+
 		if (isTextNode(node))
 			return false;
 
-		String nodeBgColor = node.getBgcolor().toString();
-		
+		String nodeBgColor = node.getStylePropertyValue("background-color");
+
 		for (VisualStructure childVisualStructure : _currentVisualStructure.getChilds())
 		{
 			if (!((ElementBox) childVisualStructure.getBox()).getBgcolor().equals(nodeBgColor))
 			{
 				childVisualStructure.setIsDividable(false);
+				childVisualStructure.setIsVisualBlock(true);
+				// TODO DoC values
+				childVisualStructure.setDoC(7);
 				return true;
 			}
 		}
-		
-		// TODO DoC values
+
 		return false;
 	}
 
 	/**
 	 * VIPS Rule Eight
 	 * <p>
-	 * If the node has at least one text node child or at least one virtual 
-	 * text node child, and the node's relative size is smaller than 
+	 * If the node has at least one text node child or at least one virtual
+	 * text node child, and the node's relative size is smaller than
 	 * a threshold, then the node cannot be divided.
 	 * Set the DoC value (from 5-8) based on the html tag of the node.
 	 * @param node
@@ -745,11 +816,11 @@ public class VipsParser {
 	 * @return True, if rule is applied, otherwise false.
 	 */
 	private boolean ruleEight(ElementBox node)
-	{		
+	{
 		System.out.println("Applying rule Eight on " + node.getNode().getNodeName() + " node");
 		if (node.getSubBoxList().isEmpty())
 			return false;
-		
+
 		int cnt = 0;
 
 		for (Box childNode : node.getSubBoxList())
@@ -761,28 +832,31 @@ public class VipsParser {
 			}
 			ElementBox child = (ElementBox) childNode;
 			if (isTextNode(child)|| isVirtualTextNode(child))
-				cnt++;				
+				cnt++;
 		}
-			
+
 		if (cnt == 0)
 			return false;
 
-		// misto rozmeru pouzit spise plochu, kterou prvek zabira
-		if (node.getWidth() > _sizeTresholdWidth && 
-			node.getHeight() > _sizeTresholdHeight)
+		if (node.getWidth() * node.getHeight() > _sizeTresholdHeight * _sizeTresholdWidth)
 			return false;
-		
+		/*
+		// misto rozmeru pouzit spise plochu, kterou prvek zabira
+		if (node.getWidth() > _sizeTresholdWidth &&
+				node.getHeight() > _sizeTresholdHeight)
+			return false;
+		 */
 		_currentVisualStructure.setIsVisualBlock(true);
 		_currentVisualStructure.setIsDividable(false);
-		
+
 		//TODO DoC Part
 		return true;
 	}
-	
+
 	/**
 	 * VIPS Rule Nine
 	 * <p>
-	 * If the child of the node with maximum size are is than 
+	 * If the child of the node with maximum size are small than
 	 * a threshold (relative size), do not divide this node. <br>
 	 * Set the DoC based on the html tag and size of this node.
 	 * @param node
@@ -791,31 +865,31 @@ public class VipsParser {
 	 * @return True, if rule is applied, otherwise false.
 	 */
 	private boolean ruleNine(ElementBox node)
-	{	
+	{
 		System.out.println("Applying rule Nine on " + node.getNode().getNodeName() + " node");
 		if (node.getSubBoxList().isEmpty())
 			return false;
-		
+
 		int maxSize = 0;
-	
+
 		for (Box childNode : node.getSubBoxList())
 		{
 			int childSize = childNode.getWidth() * childNode.getHeight();
-			
+
 			if (maxSize < childSize)
 				maxSize = childSize;
 		}
-		
+
 		if (maxSize > _sizeTresholdWidth * _sizeTresholdHeight)
 			return true;
-	
+
 		//TODO set DOC
 		_currentVisualStructure.setIsVisualBlock(true);
 		_currentVisualStructure.setIsDividable(false);
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * VIPS Rule Ten
 	 * <p>
@@ -828,17 +902,17 @@ public class VipsParser {
 	private boolean ruleTen(ElementBox node)
 	{
 		System.out.println("Applying rule Ten on " + node.getNode().getNodeName() + " node");
-		
+
 		_tempVisualStructure = null;
 		findPreviousSiblingNodeVisualStructure(node.getNode().getPreviousSibling(), _visualStructure);
-		
+
 		if (_tempVisualStructure != null)
 			if (_tempVisualStructure.isAlreadyDivided())
 				return true;
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * VIPS Rule Eleven
 	 * <p>
@@ -851,12 +925,10 @@ public class VipsParser {
 	private boolean ruleEleven(ElementBox node)
 	{
 		System.out.println("Applying rule Eleven on " + node.getNode().getNodeName() + " node");
-		if (isTextNode(node))
-			return false;
-		
-		return true;
+
+		return (isTextNode(node)) ? false : true;
 	}
-	
+
 	/**
 	 * VIPS Rule Twelve
 	 * <p>
@@ -870,85 +942,12 @@ public class VipsParser {
 	private boolean ruleTwelve(ElementBox node)
 	{
 		System.out.println("Applying rule Twelve on " + node.getNode().getNodeName() + " node");
-		
+
 		_currentVisualStructure.setIsDividable(false);
 		_currentVisualStructure.setIsVisualBlock(true);
-		
-		//TODO DoC Part
-		return false;
-	}
-	
-	/*
-	 * Checks if element is inline element
-	 */
-	private boolean isInlineNode(ElementBox node)
-	{
-		/*
-		 * NodeData nodeData = _domAnalyzer.getElementStyle((Element) node);
-		 * 
-		 * if (nodeData.getProperty("display") != null) {
-		 * System.out.print(" - ");
-		 * System.out.print(nodeData.getProperty("display").toString()); return
-		 * (nodeData.getProperty("display").toString().equals("inline")) ? true
-		 * : false; }
-		 */
 
-		if (node.getNode().getNodeName().equals("a"))
-			return true;
-		if (node.getNode().getNodeName().equals("abbr"))
-			return true;
-		if (node.getNode().getNodeName().equals("acronym"))
-			return true;
-		if (node.getNode().getNodeName().equals("b"))
-			return true;
-		if (node.getNode().getNodeName().equals("bdo"))
-			return true;
-		if (node.getNode().getNodeName().equals("big"))
-			return true;
-		if (node.getNode().getNodeName().equals("br"))
-			return true;
-		if (node.getNode().getNodeName().equals("cite"))
-			return true;
-		if (node.getNode().getNodeName().equals("code"))
-			return true;
-		if (node.getNode().getNodeName().equals("dfn"))
-			return true;
-		if (node.getNode().getNodeName().equals("em"))
-			return true;
-		if (node.getNode().getNodeName().equals("i"))
-			return true;
-		if (node.getNode().getNodeName().equals("img"))
-			return true;
-		if (node.getNode().getNodeName().equals("input"))
-			return true;
-		if (node.getNode().getNodeName().equals("kdb"))
-			return true;
-		if (node.getNode().getNodeName().equals("label"))
-			return true;
-		if (node.getNode().getNodeName().equals("q"))
-			return true;
-		if (node.getNode().getNodeName().equals("samp"))
-			return true;
-		if (node.getNode().getNodeName().equals("select"))
-			return true;
-		if (node.getNode().getNodeName().equals("small"))
-			return true;
-		if (node.getNode().getNodeName().equals("span"))
-			return true;
-		if (node.getNode().getNodeName().equals("strong"))
-			return true;
-		if (node.getNode().getNodeName().equals("sub"))
-			return true;
-		if (node.getNode().getNodeName().equals("sup"))
-			return true;
-		if (node.getNode().getNodeName().equals("textarea"))
-			return true;
-		if (node.getNode().getNodeName().equals("tt"))
-			return true;
-		if (node.getNode().getNodeName().equals("var"))
-			return true;
-		
-		return false;
+		//TODO DoC Part
+		return true;
 	}
 
 	/**
@@ -966,7 +965,7 @@ public class VipsParser {
 	{
 		this._sizeTresholdWidth = sizeTresholdWidth;
 	}
-	
+
 	/**
 	 * @return the _sizeTresholdHeight
 	 */
@@ -982,12 +981,12 @@ public class VipsParser {
 	{
 		this._sizeTresholdHeight = sizeTresholdHeight;
 	}
-	
+
 	public VisualStructure getVisualStrucure()
 	{
 		return _visualStructure;
 	}
-	
+
 	private void findPreviousSiblingNodeVisualStructure(Node node, VisualStructure visualStructure)
 	{
 		if (!visualStructure.getBox().getNode().equals(node))

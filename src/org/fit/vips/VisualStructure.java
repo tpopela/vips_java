@@ -3,7 +3,7 @@
  * VIPS - Visual Internet Page Segmentation
  * Module - VisualStructure.java
  */
- 
+
 package org.fit.vips;
 
 import java.util.ArrayList;
@@ -37,12 +37,12 @@ public class VisualStructure {
 	private boolean _alreadyDivided = false;
 	//if node can be divided
 	private boolean _isDividable = true;
-	
+
 	//length of text in node
 	private int _textLen = 0;
 	//length of text in links in node
 	private int _linkTextLen = 0;
-	
+
 	public VisualStructure() {
 		this._children = new ArrayList<VisualStructure>();
 	}
@@ -52,13 +52,13 @@ public class VisualStructure {
 		setId(id);
 		addChild(node);
 	}
-	
+
 	public void setIsVisualBlock(boolean isVisualBlock)
 	{
 		_isVisualBlock = isVisualBlock;
 		checkProperties();
 	}
-	
+
 	public boolean isVisualBlock()
 	{
 		return _isVisualBlock;
@@ -99,11 +99,11 @@ public class VisualStructure {
 			visualStucture._isImg = true;
 			this._containImg++;
 		}
-		
+
 		for (VisualStructure childVisualStructure : visualStucture.getChilds())
 			checkContainImg(childVisualStructure);
 	}
-	
+
 	/**
 	 * Checks if visual structure contains table.
 	 * @param visualStucture Visual structure
@@ -112,11 +112,11 @@ public class VisualStructure {
 	{
 		if (visualStucture.getBox().getNode().getNodeName().equals("table"))
 			this._containTable = true;
-		
+
 		for (VisualStructure childVisualStructure : visualStucture.getChilds())
 			checkContainTable(childVisualStructure);
 	}
-	
+
 	/**
 	 * Checks if visual structure contains paragraph.
 	 * @param visualStucture Visual structure
@@ -125,11 +125,11 @@ public class VisualStructure {
 	{
 		if (visualStucture.getBox().getNode().getNodeName().equals("p"))
 			this._containP++;
-		
+
 		for (VisualStructure childVisualStructure : visualStucture.getChilds())
 			checkContainP(childVisualStructure);
 	}
-	
+
 	/**
 	 * Counts length of text in links in visual block
 	 * @param visualStucture Visual structure
@@ -141,13 +141,13 @@ public class VisualStructure {
 			int linkLength = visualStucture.getBox().getNode().getTextContent().length();
 			System.out.println(_linkTextLen + " + " + linkLength + "  " + visualStucture.getBox().getNode().getTextContent());
 			_linkTextLen += linkLength;
-			
+
 		}
-		
+
 		for (VisualStructure childVisualStructure : visualStucture.getChilds())
 			countLinkTextLength(childVisualStructure);
 	}
-	
+
 	/**
 	 * Count length of text in visual block
 	 * @param visualStucture Visual structure
@@ -157,7 +157,7 @@ public class VisualStructure {
 		// TODO V ceske verzi www.fit.vutbr.cz je v orginalnim VIPS delka 3802, u me 3810
 		_textLen = visualStucture.getBox().getNode().getTextContent().replaceAll("\n", "").length();
 	}
-	
+
 	public void addChild(VisualStructure child)
 	{
 		_children.add(child);
@@ -177,7 +177,7 @@ public class VisualStructure {
 	{
 		return _box;
 	}
-	
+
 	public ElementBox getElementBox()
 	{
 		if (_box instanceof ElementBox)
@@ -185,7 +185,7 @@ public class VisualStructure {
 		else
 			return null;
 	}
-	
+
 	public void setId(int id)
 	{
 		this._id = id;
@@ -244,65 +244,70 @@ public class VisualStructure {
 	{
 		this._alreadyDivided = alreadyDivided;
 	}
-	
+
 	public boolean isImg()
 	{
 		return _isImg;
 	}
-	
+
 	public int containImg()
 	{
 		return _containImg;
 	}
-	
+
 	public boolean containTable()
 	{
 		return _containTable;
 	}
-	
+
 	public int getTextLength()
 	{
 		return _textLen;
 	}
-	
+
 	public int getLinkTextLength()
 	{
 		return _linkTextLen;
 	}
-	
+
 	public int containP()
 	{
 		return _containP;
 	}
-	
+
 	public String getBgColor()
 	{
 		String backgroundColor = this.getElementBox().getStylePropertyValue("background-color");
-		
+
 		if (backgroundColor.isEmpty())
 			backgroundColor = "#ffffff";
-		
+
 		return backgroundColor;
 	}
-	
-	public String getFontSize()
+
+	public int getFontSize()
+	{
+		return this.getElementBox().getVisualContext().getFont().getSize();
+	}
+
+	/*	public String getFontSize()
 	{
 		return String.valueOf(this.getElementBox().getVisualContext().getFont().getSize());
 	}
-	
+	 */
 	public String getFontWeight()
 	{
 		String fontWeight = "";
-		
+
 		if (this.getElementBox().getStylePropertyValue("font-weight") == null)
 			return fontWeight;
-		
+
 		fontWeight = this.getElementBox().getStylePropertyValue("font-weight");
-		
+
 		if (fontWeight.isEmpty())
 			fontWeight = "normal";
-		
+
 		return fontWeight;
 	}
-		
+
 }

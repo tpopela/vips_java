@@ -16,6 +16,11 @@ public class VipsSeparatorDetector {
 	int _width = 0;
 	int _height = 0;
 
+	/**
+	 * Defaults constructor.
+	 * @param width Pools width
+	 * @param height Pools height
+	 */
 	public VipsSeparatorDetector(int width, int height) {
 		_horizontalSeparators = new ArrayList<VipsSeparatorDetector.Separator>();
 		_verticalSeparators = new ArrayList<VipsSeparatorDetector.Separator>();

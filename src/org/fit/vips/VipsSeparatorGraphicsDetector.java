@@ -18,7 +18,8 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
-import org.fit.cssbox.layout.ElementBox;
+import org.fit.cssbox.layout.Box;
+import org.fit.cssbox.layout.TextBox;
 
 public class VipsSeparatorGraphicsDetector extends JPanel {
 
@@ -26,9 +27,15 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 
 	Graphics2D _pool = null;
 	BufferedImage _image = null;
+	VisualStructure _visualStructure = null;
 	List<Separator> _horizontalSeparators = null;
 	List<Separator> _verticalSeparators = null;
 
+	/**
+	 * Defaults constructor.
+	 * @param width Pools width
+	 * @param height Pools height
+	 */
 	public VipsSeparatorGraphicsDetector(int width, int height) {
 		_image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
 		_horizontalSeparators = new ArrayList<VipsSeparatorGraphicsDetector.Separator>();
@@ -44,13 +51,13 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	 */
 	public void addVisualBlock(VisualStructure visualStructure)
 	{
-		ElementBox elementBox = visualStructure.getElementBox();
+		Box elementBox = visualStructure.getBox();
+
 		Rectangle rect = new Rectangle(elementBox.getAbsoluteContentX(),
 				elementBox.getAbsoluteContentY(), elementBox.getContentWidth(),
 				elementBox.getContentHeight());
 		_pool.draw(rect);
 		_pool.fill(rect);
-		//saveToImage();
 	}
 
 	@Override
@@ -86,6 +93,24 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 		_pool.fillRect(0, 0, _image.getWidth(), _image.getHeight());
 		// set drawing color back to white
 		_pool.setColor(Color.black);
+	}
+
+	/**
+	 * Sets visual structure, that will be user for separators compute.
+	 * @param visualStructure Visual structure
+	 */
+	public void setVisualStructure(VisualStructure visualStructure)
+	{
+		this._visualStructure = visualStructure;
+	}
+
+	/**
+	 * Gets visual structure, that is used for separators compute.
+	 * @return Visual structure
+	 */
+	public VisualStructure getVisualStructure()
+	{
+		return _visualStructure;
 	}
 
 	/**
@@ -311,6 +336,8 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 		//remove pool borders
 		_horizontalSeparators.remove(0);
 		_horizontalSeparators.remove(_horizontalSeparators.size()-1);
+
+		computeHorizontalWeights();
 	}
 
 	/**
@@ -328,6 +355,276 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 		//remove pool borders
 		_verticalSeparators.remove(0);
 		_verticalSeparators.remove(_verticalSeparators.size()-1);
+
+		computeVerticalWeights();
+	}
+
+	/**
+	 * Computes weights for vertical separators.
+	 */
+	private void computeVerticalWeights()
+	{
+		for (Separator separator : _verticalSeparators)
+		{
+			ruleOne(separator);
+			ruleTwo(separator, false);
+			ruleThree(separator, false);
+		}
+	}
+
+	/**
+	 * Computes weights for horizontal separators.
+	 */
+	private void computeHorizontalWeights()
+	{
+		for (Separator separator : _horizontalSeparators)
+		{
+			ruleOne(separator);
+			ruleTwo(separator, true);
+			ruleThree(separator,true);
+			ruleFour(separator);
+			ruleFive(separator);
+		}
+	}
+
+	/**
+	 * The greater the distance between blocks on different
+	 * side of the separator, the higher the weight. <p>
+	 * For every 5 points of width we increase weight by 2 points.
+	 * @param separator Separator
+	 */
+	private void ruleOne(Separator separator)
+	{
+		int width = separator.endPoint - separator.startPoint;
+		int weight = (width / 5);
+		separator.weight += weight * 2;
+	}
+
+	/**
+	 * If a visual separator is overlapped with some certain HTML
+	 * tags (e.g., the &lt;HR&gt; HTML tag), its weight is set to be higher.
+	 * @param separator Separator
+	 */
+	private void ruleTwo(Separator separator, boolean horizontal)
+	{
+		List<VisualStructure> overlappedElements = new ArrayList<VisualStructure>();
+		if (horizontal)
+			findHorizontalOverlappedElements(separator, _visualStructure, overlappedElements);
+		else
+			findVerticalOverlappedElements(separator, _visualStructure, overlappedElements);
+
+		if (overlappedElements.size() == 0)
+			return;
+
+		for (VisualStructure visualStructure : overlappedElements)
+		{
+			if (visualStructure.getBox().getNode().getNodeName().equals("hr"))
+			{
+				separator.weight += 2;
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Finds elements that are overlapped with horizontal separator.
+	 * @param separator Separator, that we look at
+	 * @param visualStructure Visual structure of element
+	 * @param result Elements, that we found
+	 */
+	private void findHorizontalOverlappedElements(Separator separator,
+			VisualStructure visualStructure, List<VisualStructure> result)
+	{
+		int topEdge = visualStructure.getBox().getAbsoluteContentY();
+		int bottomEdge = topEdge + visualStructure.getBox().getContentHeight();
+
+		// two upper edges of element are overlapped with separator
+		if (topEdge > separator.startPoint && topEdge < separator.endPoint && bottomEdge > separator.endPoint)
+		{
+			result.add(visualStructure);
+		}
+
+		// two bottom edges of element are overlapped with separator
+		if (topEdge < separator.startPoint && bottomEdge > separator.startPoint && bottomEdge < separator.endPoint)
+		{
+			result.add(visualStructure);
+		}
+
+		// all edges of element are overlapped with separator
+		if (topEdge >= separator.startPoint && bottomEdge <= separator.endPoint)
+		{
+			result.add(visualStructure);
+		}
+
+		for (VisualStructure childVisualStructure : visualStructure.getChilds())
+			findHorizontalOverlappedElements(separator, childVisualStructure, result);
+	}
+
+	/**
+	 * Finds elements that are overlapped with vertical separator.
+	 * @param separator Separator, that we look at
+	 * @param visualStructure Visual structure of element
+	 * @param result Elements, that we found
+	 */
+	private void findVerticalOverlappedElements(Separator separator,
+			VisualStructure visualStructure, List<VisualStructure> result)
+	{
+		int leftEdge = visualStructure.getBox().getAbsoluteContentX();
+		int rightEdge = leftEdge + visualStructure.getBox().getContentWidth();
+
+		// two left edges of element are overlapped with separator
+		if (leftEdge > separator.startPoint && leftEdge < separator.endPoint && rightEdge > separator.endPoint)
+		{
+			result.add(visualStructure);
+		}
+
+		// two right edges of element are overlapped with separator
+		if (leftEdge < separator.startPoint && rightEdge > separator.startPoint && rightEdge < separator.endPoint)
+		{
+			result.add(visualStructure);
+		}
+
+		// all edges of element are overlapped with separator
+		if (leftEdge >= separator.startPoint && rightEdge <= separator.endPoint)
+		{
+			result.add(visualStructure);
+		}
+
+		for (VisualStructure childVisualStructure : visualStructure.getChilds())
+			findVerticalOverlappedElements(separator, childVisualStructure, result);
+	}
+
+	/**
+	 * If background colors of the blocks on two sides of the separator
+	 * are different, the weight will be increased.
+	 * @param separator Separator
+	 */
+	private void ruleThree(Separator separator, boolean horizontal)
+	{
+		List<VisualStructure> adjacentElements = new ArrayList<VisualStructure>();
+		if (horizontal)
+			findHorizontalAdjacentBlocks(separator, _visualStructure, adjacentElements);
+		else
+			findVerticalAdjacentBlocks(separator, _visualStructure, adjacentElements);
+
+		if (adjacentElements.size() < 2)
+			return;
+
+		for (int i = 1; i < adjacentElements.size(); i++)
+		{
+			// TODO asi nezvysovat pro kazdy element
+			if (!adjacentElements.get(0).getBgColor().equals(adjacentElements.get(i).getBgColor()))
+				separator.weight += 2;
+		}
+
+	}
+
+	/**
+	 * Finds elements that are adjacent to horizontal separator.
+	 * @param separator Separator, that we look at
+	 * @param visualStructure Visual structure of element
+	 * @param result Elements, that we found
+	 */
+	private void findHorizontalAdjacentBlocks(Separator separator,
+			VisualStructure visualStructure, List<VisualStructure> result)
+	{
+		if (visualStructure.isVisualBlock())
+		{
+			int topEdge = visualStructure.getBox().getAbsoluteContentY();
+			int bottomEdge = topEdge + visualStructure.getBox().getContentHeight();
+
+			// if box is adjancent to separator from bottom
+			if (topEdge == separator.endPoint + 1 && bottomEdge > separator.endPoint + 1)
+			{
+				result.add(visualStructure);
+			}
+
+			// if box is adjancent to separator from top
+			if (bottomEdge == separator.startPoint - 1 && topEdge < separator.startPoint - 1)
+			{
+				result.add(0, visualStructure);
+			}
+		}
+
+		for (VisualStructure childVisualStructure : visualStructure.getChilds())
+			findHorizontalAdjacentBlocks(separator, childVisualStructure, result);
+	}
+
+	/**
+	 * Finds elements that are adjacent to vertical separator.
+	 * @param separator Separator, that we look at
+	 * @param visualStructure Visual structure of element
+	 * @param result Elements, that we found
+	 */
+	private void findVerticalAdjacentBlocks(Separator separator,
+			VisualStructure visualStructure, List<VisualStructure> result)
+	{
+		if (visualStructure.isVisualBlock())
+		{
+			int leftEdge = visualStructure.getBox().getAbsoluteContentX() + 1;
+			int rightEdge = leftEdge + visualStructure.getBox().getContentWidth();
+
+			// if box is adjancent to separator from right
+			if (leftEdge == separator.endPoint + 1 && rightEdge > separator.endPoint + 1)
+			{
+				result.add(visualStructure);
+			}
+
+			// if box is adjancent to separator from left
+			if (rightEdge == separator.startPoint - 1 && leftEdge < separator.startPoint - 1)
+			{
+				result.add(0, visualStructure);
+			}
+		}
+		for (VisualStructure childVisualStructure : visualStructure.getChilds())
+			findVerticalAdjacentBlocks(separator, childVisualStructure, result);
+	}
+
+	/**
+	 * For horizontal separators, if the differences of font properties
+	 * such as font size and font weight are bigger on two
+	 * sides of the separator, the weight will be increased.
+	 * Moreover, the weight will be increased if the font size of the block
+	 * above the separator is smaller than the font size of the block
+	 * below the separator.
+	 * @param separator Separator
+	 */
+	private void ruleFour(Separator separator)
+	{
+		List<VisualStructure> adjacentElements = new ArrayList<VisualStructure>();
+
+		findHorizontalAdjacentBlocks(separator, _visualStructure, adjacentElements);
+
+		if (adjacentElements.size() < 2)
+			return;
+
+		int diff = Math.abs(adjacentElements.get(0).getFontSize() - adjacentElements.get(1).getFontSize());
+		diff /= 2;
+		separator.weight += 2 * diff;
+
+		if (adjacentElements.get(0).getFontSize() < adjacentElements.get(1).getFontSize())
+			separator.weight += 2;
+
+	}
+
+	/**
+	 * For horizontal separators, when the structures of the blocks on the two
+	 * sides of the separator are very similar (e.g. both are text),
+	 * the weight of the separator will be decreased.
+	 * @param separator Separator
+	 */
+	private void ruleFive(Separator separator)
+	{
+		List<VisualStructure> adjacentElements = new ArrayList<VisualStructure>();
+
+		findHorizontalAdjacentBlocks(separator, _visualStructure, adjacentElements);
+
+		if (adjacentElements.size() < 2)
+			return;
+
+		if (adjacentElements.get(0).getBox() instanceof TextBox &&
+				adjacentElements.get(1).getBox() instanceof TextBox)
+			separator.weight -= 2;
 	}
 
 	/**
@@ -421,10 +718,17 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	public class Separator {
 		public int startPoint;
 		public int endPoint;
+		public int weight = 10;
 
 		public Separator(int start, int end) {
 			this.startPoint = start;
 			this.endPoint = end;
+		}
+
+		public Separator(int start, int end, int weight) {
+			this.startPoint = start;
+			this.endPoint = end;
+			this.weight = weight;
 		}
 	}
 }
