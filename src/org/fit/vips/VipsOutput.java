@@ -106,7 +106,7 @@ public class VipsOutput {
 			doc = docBuilder.newDocument();
 			Element vipsElement = doc.createElement("VIPSPage");
 
-			// TODO ziskat titulek stranky z viewportu pokud to jde
+			// TODO ziskat titulek stranky z viewportu pokud to jde; zkusit to nekde z elementBoxu.. kdyztak to proletet cely..
 			//			String pageTitle = pageViewport.getRootElement().getElementsByTagName("title").item(0).getNodeValue();
 
 			vipsElement.setAttribute("Url", pageViewport.getRootBox().getBase().toString());
@@ -136,15 +136,12 @@ public class VipsOutput {
 		}
 		catch (ParserConfigurationException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (TransformerConfigurationException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (TransformerException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

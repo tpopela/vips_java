@@ -396,7 +396,12 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	private void ruleOne(Separator separator)
 	{
 		int width = separator.endPoint - separator.startPoint;
-		int weight = (width / 5);
+		int weight = 0;
+		if (width < 5)
+			weight = 1;
+		else
+			weight = (width / 5);
+
 		separator.weight += weight * 2;
 	}
 
@@ -501,32 +506,37 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	 */
 	private void ruleThree(Separator separator, boolean horizontal)
 	{
-		List<VisualStructure> adjacentElements = new ArrayList<VisualStructure>();
+		// for vertical is represents elements on left side
+		List<VisualStructure> topAdjacentElements = new ArrayList<VisualStructure>();
+		// for vertical is represents elements on right side
+		List<VisualStructure> bottomAdjacentElements = new ArrayList<VisualStructure>();
 		if (horizontal)
-			findHorizontalAdjacentBlocks(separator, _visualStructure, adjacentElements);
+			findHorizontalAdjacentBlocks(separator, _visualStructure, topAdjacentElements, bottomAdjacentElements);
 		else
-			findVerticalAdjacentBlocks(separator, _visualStructure, adjacentElements);
+			findVerticalAdjacentBlocks(separator, _visualStructure, topAdjacentElements, bottomAdjacentElements);
 
-		if (adjacentElements.size() < 2)
+		if (topAdjacentElements.size() < 1 || bottomAdjacentElements.size() < 1)
 			return;
 
-		for (int i = 1; i < adjacentElements.size(); i++)
+		for (VisualStructure top : topAdjacentElements)
 		{
-			// TODO asi nezvysovat pro kazdy element
-			if (!adjacentElements.get(0).getBgColor().equals(adjacentElements.get(i).getBgColor()))
-				separator.weight += 2;
+			for (VisualStructure bottom : bottomAdjacentElements)
+			{
+				if (!top.getBgColor().equals(bottom.getBgColor()))
+					separator.weight += 2;
+			}
 		}
-
 	}
 
 	/**
 	 * Finds elements that are adjacent to horizontal separator.
 	 * @param separator Separator, that we look at
 	 * @param visualStructure Visual structure of element
-	 * @param result Elements, that we found
+	 * @param resultTop Elements, that we found on top side of separator
+	 * @param resultBottom Elements, that we found on bottom side side of separator
 	 */
 	private void findHorizontalAdjacentBlocks(Separator separator,
-			VisualStructure visualStructure, List<VisualStructure> result)
+			VisualStructure visualStructure, List<VisualStructure> resultTop, List<VisualStructure> resultBottom)
 	{
 		if (visualStructure.isVisualBlock())
 		{
@@ -536,28 +546,29 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 			// if box is adjancent to separator from bottom
 			if (topEdge == separator.endPoint + 1 && bottomEdge > separator.endPoint + 1)
 			{
-				result.add(visualStructure);
+				resultBottom.add(visualStructure);
 			}
 
 			// if box is adjancent to separator from top
 			if (bottomEdge == separator.startPoint - 1 && topEdge < separator.startPoint - 1)
 			{
-				result.add(0, visualStructure);
+				resultTop.add(0, visualStructure);
 			}
 		}
 
 		for (VisualStructure childVisualStructure : visualStructure.getChilds())
-			findHorizontalAdjacentBlocks(separator, childVisualStructure, result);
+			findHorizontalAdjacentBlocks(separator, childVisualStructure, resultTop, resultBottom);
 	}
 
 	/**
 	 * Finds elements that are adjacent to vertical separator.
 	 * @param separator Separator, that we look at
 	 * @param visualStructure Visual structure of element
-	 * @param result Elements, that we found
+	 * @param resultLeft Elements, that we found on left side of separator
+	 * @param resultRight Elements, that we found on right side side of separator
 	 */
 	private void findVerticalAdjacentBlocks(Separator separator,
-			VisualStructure visualStructure, List<VisualStructure> result)
+			VisualStructure visualStructure, List<VisualStructure> resultLeft, List<VisualStructure> resultRight)
 	{
 		if (visualStructure.isVisualBlock())
 		{
@@ -567,17 +578,17 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 			// if box is adjancent to separator from right
 			if (leftEdge == separator.endPoint + 1 && rightEdge > separator.endPoint + 1)
 			{
-				result.add(visualStructure);
+				resultRight.add(visualStructure);
 			}
 
 			// if box is adjancent to separator from left
 			if (rightEdge == separator.startPoint - 1 && leftEdge < separator.startPoint - 1)
 			{
-				result.add(0, visualStructure);
+				resultLeft.add(0, visualStructure);
 			}
 		}
 		for (VisualStructure childVisualStructure : visualStructure.getChilds())
-			findVerticalAdjacentBlocks(separator, childVisualStructure, result);
+			findVerticalAdjacentBlocks(separator, childVisualStructure, resultLeft, resultRight);
 	}
 
 	/**
@@ -591,22 +602,50 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	 */
 	private void ruleFour(Separator separator)
 	{
-		List<VisualStructure> adjacentElements = new ArrayList<VisualStructure>();
+		List<VisualStructure> topAdjacentElements = new ArrayList<VisualStructure>();
+		List<VisualStructure> bottomAdjacentElements = new ArrayList<VisualStructure>();
 
-		findHorizontalAdjacentBlocks(separator, _visualStructure, adjacentElements);
+		findHorizontalAdjacentBlocks(separator, _visualStructure, topAdjacentElements, bottomAdjacentElements);
 
-		if (adjacentElements.size() < 2)
+		if (topAdjacentElements.size() < 1 || bottomAdjacentElements.size() < 1)
 			return;
 
-		int diff = Math.abs(adjacentElements.get(0).getFontSize() - adjacentElements.get(1).getFontSize());
-		diff /= 2;
-		separator.weight += 2 * diff;
+		boolean weightIncreased = false;
 
+		for (VisualStructure top : topAdjacentElements)
+		{
+			for (VisualStructure bottom : bottomAdjacentElements)
+			{
+				int diff = Math.abs(top.getFontSize() - bottom.getFontSize());
+				if (diff != 0)
+				{
+					diff /= 2;
+					separator.weight += 2;
+					weightIncreased = true;
+					break;
+				}
+			}
+			if (weightIncreased)
+				break;
+		}
+
+		weightIncreased = false;
 		//TODO font weight
 
-		if (adjacentElements.get(0).getFontSize() < adjacentElements.get(1).getFontSize())
-			separator.weight += 2;
-
+		for (VisualStructure top : topAdjacentElements)
+		{
+			for (VisualStructure bottom : bottomAdjacentElements)
+			{
+				if (top.getFontSize() < bottom.getFontSize())
+				{
+					separator.weight += 2;
+					weightIncreased = true;
+					break;
+				}
+			}
+			if (weightIncreased)
+				break;
+		}
 	}
 
 	/**
@@ -617,16 +656,31 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	 */
 	private void ruleFive(Separator separator)
 	{
-		List<VisualStructure> adjacentElements = new ArrayList<VisualStructure>();
+		List<VisualStructure> topAdjacentElements = new ArrayList<VisualStructure>();
+		List<VisualStructure> bottomAdjacentElements = new ArrayList<VisualStructure>();
 
-		findHorizontalAdjacentBlocks(separator, _visualStructure, adjacentElements);
+		findHorizontalAdjacentBlocks(separator, _visualStructure, topAdjacentElements, bottomAdjacentElements);
 
-		if (adjacentElements.size() < 2)
+		if (topAdjacentElements.size() < 1 || bottomAdjacentElements.size() < 1)
 			return;
 
-		if (adjacentElements.get(0).getBox() instanceof TextBox &&
-				adjacentElements.get(1).getBox() instanceof TextBox)
-			separator.weight -= 2;
+		boolean weightDecreased = false;
+
+		for (VisualStructure top : topAdjacentElements)
+		{
+			for (VisualStructure bottom : bottomAdjacentElements)
+			{
+				if (top.getBox() instanceof TextBox &&
+						bottom.getBox() instanceof TextBox)
+				{
+					separator.weight -= 2;
+					weightDecreased = true;
+					break;
+				}
+			}
+			if (weightDecreased)
+				break;
+		}
 	}
 
 	/**
@@ -721,10 +775,17 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 		public int startPoint;
 		public int endPoint;
 		public int weight = 10;
+		public boolean horizontal = true;
 
 		public Separator(int start, int end) {
 			this.startPoint = start;
 			this.endPoint = end;
+		}
+
+		public Separator(int start, int end, boolean horizontal) {
+			this.startPoint = start;
+			this.endPoint = end;
+			this.horizontal = horizontal;
 		}
 
 		public Separator(int start, int end, int weight) {

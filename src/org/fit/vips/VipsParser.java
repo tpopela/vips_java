@@ -92,6 +92,10 @@ public class VipsParser {
 			findVisualBlocks(childVisualStructure, list);
 	}
 
+	//TODO pokud za br neni dalsi text brat nebrat jako visualni blok (prazdny radek)
+	//TODO br + blokove elementy
+	//TODO br br br
+
 	public List<VisualStructure> getVisualBlocks()
 	{
 		List<VisualStructure> list = new ArrayList<VisualStructure>();
@@ -130,6 +134,9 @@ public class VipsParser {
 		_currentVisualStructure = visualStructure;
 		ElementBox elementBox = (ElementBox) visualStructure.getBox();
 		System.out.println(elementBox.getNode().getNodeName());
+
+		if (elementBox.getNode().getNodeName().equals("br"))
+			System.out.println("aaa");
 
 		// With VIPS rules it tries to determine if element is dividable
 		if (applyVipsRules(elementBox) && visualStructure.isDividable() && !visualStructure.isVisualBlock())
@@ -614,19 +621,49 @@ public class VipsParser {
 	{
 		System.out.println("Applying rule Three on " + node.getNode().getNodeName() + " node");
 
+		// TODO check if node is root element of the block
 		if (!node.isRootElement())
 			return false;
+
+		boolean result = true;
+		int cnt = 0;
 
 		for (VisualStructure visualStructure : _visualStructure.getChilds())
 		{
 			if (visualStructure.getBox().getNode().getNodeName().equals(node.getNode().getNodeName()))
 			{
-				if (visualStructure.getBox().getNode().getChildNodes().getLength() == node.getNode().getChildNodes().getLength())
-					return true;
+				result = true;
+				isOnlyOneDomSubTree(node.getNode(), visualStructure.getBox().getNode(), result);
+
+				if (result)
+					cnt++;
 			}
 		}
 
-		return false;
+		return (cnt == 1) ? true : false;
+	}
+
+	/**
+	 * Checks if node's subtree is unique in DOM tree.
+	 * @param pattern Node for comparing
+	 * @param node Node from DOM tree
+	 * @param result True if element is unique otherwise false
+	 */
+	private void isOnlyOneDomSubTree(Node pattern, Node node, boolean result)
+	{
+		if (!pattern.getNodeName().equals(node.getNodeName()))
+			result = false;
+
+		if (pattern.getChildNodes().getLength() != node.getChildNodes().getLength())
+			result = false;
+
+		if (!result)
+			return;
+
+		for (int i = 0; i < pattern.getChildNodes().getLength(); i++)
+		{
+			isOnlyOneDomSubTree(pattern.getChildNodes().item(i), node.getChildNodes().item(i), result);
+		}
 	}
 
 	/**
