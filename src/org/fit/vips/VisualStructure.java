@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.fit.cssbox.layout.Box;
 import org.fit.cssbox.layout.ElementBox;
+import org.w3c.dom.Element;
 
 public class VisualStructure {
 
@@ -37,6 +38,8 @@ public class VisualStructure {
 	private boolean _alreadyDivided = false;
 	//if node can be divided
 	private boolean _isDividable = true;
+
+	private boolean _isSeparator = false;
 
 	//length of text in node
 	private int _textLen = 0;
@@ -275,12 +278,28 @@ public class VisualStructure {
 		return _containP;
 	}
 
+	private void findBgColor(Element element, String bgColor)
+	{
+		String backgroundColor = element.getAttribute("background-color");
+
+		if (backgroundColor.isEmpty())
+		{
+			if (element.getParentNode() != null &&
+					!(element.getParentNode() instanceof org.apache.xerces.dom.DeferredDocumentImpl))
+				findBgColor((Element) element.getParentNode(), bgColor);
+			else
+				bgColor = "#ffffff";
+		}
+		else
+			bgColor = backgroundColor;
+	}
+
 	public String getBgColor()
 	{
 		String backgroundColor = this.getElementBox().getStylePropertyValue("background-color");
 
 		if (backgroundColor.isEmpty())
-			backgroundColor = "#ffffff";
+			findBgColor(this.getElementBox().getElement(), backgroundColor);
 
 		return backgroundColor;
 	}
@@ -290,11 +309,6 @@ public class VisualStructure {
 		return this.getElementBox().getVisualContext().getFont().getSize();
 	}
 
-	/*	public String getFontSize()
-	{
-		return String.valueOf(this.getElementBox().getVisualContext().getFont().getSize());
-	}
-	 */
 	public String getFontWeight()
 	{
 		String fontWeight = "";
@@ -310,4 +324,19 @@ public class VisualStructure {
 		return fontWeight;
 	}
 
+	/**
+	 * @return the _isSeparator
+	 */
+	public boolean isSeparator()
+	{
+		return _isSeparator;
+	}
+
+	/**
+	 * @param _isSeparator the _isSeparator to set
+	 */
+	public void setIsSeparator(boolean isSeparator)
+	{
+		this._isSeparator = isSeparator;
+	}
 }

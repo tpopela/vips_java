@@ -162,9 +162,36 @@ public class VipsParser {
 				if (visualStructure.isVisualBlock())
 					System.out.println("Element " + elementBox.getNode().getNodeName() + " is visual block");
 				else
-					System.out.println("Element " + elementBox.getNode().getNodeName() + " is not dividable");
+				{
+					if (ruleBr(elementBox.getNode()))
+						visualStructure.setIsSeparator(true);
+					else
+						System.out.println("Element " + elementBox.getNode().getNodeName() + " is not dividable");
+				}
 			}
 		}
+	}
+
+	private boolean ruleBr(Node node)
+	{
+		if (!node.getNodeName().equals("br"))
+			return false;
+
+		if (!node.getParentNode().getNodeName().equals("td"))
+			return false;
+
+		if (!node.getParentNode().getParentNode().getNodeName().equals("tr"))
+			return false;
+
+		if (!node.getParentNode().getParentNode().getFirstChild().getNodeName().equals("td"))
+			return false;
+
+		String nextText = node.getNextSibling().getTextContent();
+
+		if (!nextText.isEmpty() && !nextText.equals(" "))
+			return false;
+
+		return true;
 	}
 
 	/**
@@ -324,9 +351,6 @@ public class VipsParser {
 	{
 		boolean retVal = false;
 
-		if (node.getNode().getNodeName().equals("Xdiv"))
-			System.out.println("aaa");
-
 		System.out.println("Applying VIPS rules on " + node.getNode().getNodeName() + " node");
 
 		if (!node.isBlock())
@@ -349,12 +373,6 @@ public class VipsParser {
 		{
 			retVal = applyPNodeVipsRules(node);
 		}
-		//		else if (node.getElement().getNodeName().substring(0, 1).equals("X"))
-		//{
-		//????????????????????????????????
-		//			retVal = false;
-		//			retVal = applyOtherNodeVipsRules(node);
-		//}
 		else
 		{
 			retVal = applyOtherNodeVipsRules(node);
