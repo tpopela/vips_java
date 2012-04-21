@@ -136,12 +136,15 @@ public class VipsOutput {
 		}
 		catch (ParserConfigurationException e)
 		{
+			System.err.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		} catch (TransformerConfigurationException e)
 		{
+			System.err.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		} catch (TransformerException e)
 		{
+			System.err.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		}
 

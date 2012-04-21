@@ -39,14 +39,14 @@ public class Vips {
 			_domAnalyzer.addStyleSheet(null, CSSNorm.userStyleSheet());
 			_domAnalyzer.getStyleSheets();
 		} catch (Exception e) {
-			System.out.print(e.getMessage());
+			System.err.print(e.getMessage());
 		}
 	}
 
 	private static void getViewport()
 	{
 		_browserCanvas = new BrowserCanvas(_domAnalyzer.getRoot(),
-				_domAnalyzer, new java.awt.Dimension(1680, 1050), _url);
+				_domAnalyzer, new java.awt.Dimension(1000, 600), _url);
 		_viewport = ((BrowserCanvas) _browserCanvas).getViewport();
 	}
 
@@ -83,8 +83,8 @@ public class Vips {
 
 			for (VisualStructure vs : list)
 			{
-				System.out.println(vs.getBox().getContentWidth() + "  -  " + vs.getBox().getContentHeight());
-				System.out.println(vs.getBox().getText());
+				System.err.println(vs.getBox().getContentWidth() + "  -  " + vs.getBox().getContentHeight());
+				System.err.println(vs.getBox().getText());
 			}
 
 			vipsSeparatorDetector.fillPool(visualStructure);
@@ -100,7 +100,7 @@ public class Vips {
 
 			urlStream.close();
 		} catch (Exception e) {
-			System.out.println("Error: " + e.getMessage());
+			System.err.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		}
 

@@ -39,8 +39,6 @@ public class VisualStructure {
 	//if node can be divided
 	private boolean _isDividable = true;
 
-	private boolean _isSeparator = false;
-
 	//length of text in node
 	private int _textLen = 0;
 	//length of text in links in node
@@ -142,7 +140,7 @@ public class VisualStructure {
 		if (visualStucture.getBox().getNode().getNodeName().equals("a"))
 		{
 			int linkLength = visualStucture.getBox().getNode().getTextContent().length();
-			System.out.println(_linkTextLen + " + " + linkLength + "  " + visualStucture.getBox().getNode().getTextContent());
+			System.err.println(_linkTextLen + " + " + linkLength + "  " + visualStucture.getBox().getNode().getTextContent());
 			_linkTextLen += linkLength;
 
 		}
@@ -322,21 +320,5 @@ public class VisualStructure {
 			fontWeight = "normal";
 
 		return fontWeight;
-	}
-
-	/**
-	 * @return the _isSeparator
-	 */
-	public boolean isSeparator()
-	{
-		return _isSeparator;
-	}
-
-	/**
-	 * @param _isSeparator the _isSeparator to set
-	 */
-	public void setIsSeparator(boolean isSeparator)
-	{
-		this._isSeparator = isSeparator;
 	}
 }

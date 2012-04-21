@@ -30,7 +30,6 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	VisualStructure _visualStructure = null;
 	List<Separator> _horizontalSeparators = null;
 	List<Separator> _verticalSeparators = null;
-	private boolean separate = false;
 
 	/**
 	 * Defaults constructor.
@@ -58,15 +57,6 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 				elementBox.getAbsoluteContentY(), elementBox.getContentWidth(),
 				elementBox.getContentHeight());
 
-		if (separate)
-		{
-			rect.setSize(elementBox.getContentWidth(), elementBox.getContentHeight()-3);
-			separate = false;
-		}
-
-		if (visualStructure.isSeparator())
-			separate = true;
-
 		_pool.draw(rect);
 		_pool.fill(rect);
 	}
@@ -86,7 +76,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	 */
 	public void fillPool(VisualStructure visualStructure)
 	{
-		if (visualStructure.isVisualBlock() || visualStructure.isSeparator())
+		if (visualStructure.isVisualBlock())
 			addVisualBlock(visualStructure);
 
 		for (VisualStructure childVisualStructure : visualStructure.getChilds())
@@ -775,7 +765,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 			ImageIO.write(_image, "png", new File(filename));
 		} catch (Exception e)
 		{
-			System.out.print(e.getStackTrace());
+			System.err.print(e.getStackTrace());
 		}
 	}
 
