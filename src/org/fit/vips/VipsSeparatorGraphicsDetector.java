@@ -38,8 +38,8 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	 */
 	public VipsSeparatorGraphicsDetector(int width, int height) {
 		_image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
-		_horizontalSeparators = new ArrayList<VipsSeparatorGraphicsDetector.Separator>();
-		_verticalSeparators = new ArrayList<VipsSeparatorGraphicsDetector.Separator>();
+		_horizontalSeparators = new ArrayList<Separator>();
+		_verticalSeparators = new ArrayList<Separator>();
 		createPool();
 	}
 
@@ -141,7 +141,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 					// if separator is inside visual block
 					if (blockStart < separator.startPoint && blockEnd > separator.endPoint)
 					{
-						List<Separator> tempSeparators = new ArrayList<VipsSeparatorGraphicsDetector.Separator>();
+						List<Separator> tempSeparators = new ArrayList<Separator>();
 						tempSeparators.addAll(_verticalSeparators);
 
 						//remove all separators, that are included in block
@@ -245,7 +245,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 					// if separator is inside visual block
 					if (blockStart < separator.startPoint && blockEnd > separator.endPoint)
 					{
-						List<Separator> tempSeparators = new ArrayList<VipsSeparatorGraphicsDetector.Separator>();
+						List<Separator> tempSeparators = new ArrayList<Separator>();
 						tempSeparators.addAll(_horizontalSeparators);
 
 						//remove all separators, that are included in block
@@ -766,33 +766,6 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 		} catch (Exception e)
 		{
 			System.err.print(e.getStackTrace());
-		}
-	}
-
-	/**
-	 * Class that represents visual separator
-	 */
-	public class Separator {
-		public int startPoint;
-		public int endPoint;
-		public int weight = 10;
-		public boolean horizontal = true;
-
-		public Separator(int start, int end) {
-			this.startPoint = start;
-			this.endPoint = end;
-		}
-
-		public Separator(int start, int end, boolean horizontal) {
-			this.startPoint = start;
-			this.endPoint = end;
-			this.horizontal = horizontal;
-		}
-
-		public Separator(int start, int end, int weight) {
-			this.startPoint = start;
-			this.endPoint = end;
-			this.weight = weight;
 		}
 	}
 }

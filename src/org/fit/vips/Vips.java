@@ -9,7 +9,6 @@ package org.fit.vips;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.List;
 
 import org.fit.cssbox.css.CSSNorm;
 import org.fit.cssbox.css.DOMAnalyzer;
@@ -78,14 +77,6 @@ public class Vips {
 			VipsSeparatorGraphicsDetector vipsSeparatorDetector = new VipsSeparatorGraphicsDetector(_viewport.getContentWidth(), _viewport.getContentHeight());
 
 			VisualStructure visualStructure = vipsParser.getVisualStrucure();
-
-			List<VisualStructure> list = vipsParser.getVisualBlocks();
-
-			for (VisualStructure vs : list)
-			{
-				System.err.println(vs.getBox().getContentWidth() + "  -  " + vs.getBox().getContentHeight());
-				System.err.println(vs.getBox().getText());
-			}
 
 			vipsSeparatorDetector.fillPool(visualStructure);
 			vipsSeparatorDetector.saveToImage("pool");
