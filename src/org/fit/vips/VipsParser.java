@@ -34,8 +34,8 @@ public class VipsParser {
 	public VipsParser(Viewport viewport) {
 		this._viewport = viewport;
 		this._visualStructure = new VisualStructure();
-		this._sizeTresholdHeight = 50;
-		this._sizeTresholdWidth = 50;
+		this._sizeTresholdHeight = 60;
+		this._sizeTresholdWidth = 60;
 	}
 
 	/**
@@ -91,10 +91,6 @@ public class VipsParser {
 		for (VisualStructure childVisualStructure : visualStructure.getChilds())
 			findVisualBlocks(childVisualStructure, list);
 	}
-
-	//TODO pokud za br neni dalsi text brat nebrat jako visualni blok (prazdny radek)
-	//TODO br + blokove elementy
-	//TODO br br br
 
 	public List<VisualStructure> getVisualBlocks()
 	{
@@ -819,11 +815,12 @@ public class VipsParser {
 		if (isTextNode(node))
 			return false;
 
-		String nodeBgColor = node.getStylePropertyValue("background-color");
+		//String nodeBgColor = node.getStylePropertyValue("background-color");
+		String nodeBgColor = _currentVisualStructure.getBgColor();
 
 		for (VisualStructure childVisualStructure : _currentVisualStructure.getChilds())
 		{
-			if (!((ElementBox) childVisualStructure.getBox()).getBgcolor().equals(nodeBgColor))
+			if (!(childVisualStructure.getBgColor().equals(nodeBgColor)))
 			{
 				childVisualStructure.setIsDividable(false);
 				childVisualStructure.setIsVisualBlock(true);

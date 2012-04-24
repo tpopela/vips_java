@@ -9,6 +9,8 @@ package org.fit.vips;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.fit.cssbox.css.CSSNorm;
 import org.fit.cssbox.css.DOMAnalyzer;
@@ -60,7 +62,13 @@ public class Vips {
 
 		try
 		{
-			_url = new URL(args[0]);
+			String url = args[0];
+
+			if (url.startsWith("http://") || url.startsWith("https://"))
+				_url = new URL(url);
+			else
+				_url = new URL("http://" + url);
+
 			URLConnection urlConnection = _url.openConnection();
 			InputStream urlStream = urlConnection.getInputStream();
 
@@ -77,6 +85,9 @@ public class Vips {
 			VipsSeparatorGraphicsDetector vipsSeparatorDetector = new VipsSeparatorGraphicsDetector(_viewport.getContentWidth(), _viewport.getContentHeight());
 
 			VisualStructure visualStructure = vipsParser.getVisualStrucure();
+
+			List<VisualStructure> list = new ArrayList<VisualStructure>();
+			list = vipsParser.getVisualBlocks();
 
 			vipsSeparatorDetector.fillPool(visualStructure);
 			vipsSeparatorDetector.saveToImage("pool");
