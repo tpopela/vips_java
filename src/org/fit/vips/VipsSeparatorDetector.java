@@ -13,7 +13,7 @@ import org.fit.cssbox.layout.TextBox;
 
 public class VipsSeparatorDetector {
 
-	VisualStructure _visualStructure = null;
+	VipsBlock _vipsBlock = null;
 	List<Separator> _horizontalSeparators = null;
 	List<Separator> _verticalSeparators = null;
 	int _width = 0;
@@ -32,35 +32,35 @@ public class VipsSeparatorDetector {
 	}
 
 	/**
-	 * Sets visual structure, that will be user for separators compute.
-	 * @param visualStructure Visual structure
+	 * Sets VIPS block, that will be used for separators computing.
+	 * @param vipsBlock Visual structure
 	 */
-	public void setVisualStructure(VisualStructure visualStructure)
-	{
-		this._visualStructure = visualStructure;
+	public void setVipsBlock(VipsBlock vipsBlock)
+	{	//TODO vkladat visualStructure do parametru metod nebo vyuzivat ve vsech tu, kterou vlozim pomoci teto funkce?
+		this._vipsBlock = vipsBlock;
 	}
 
 	/**
-	 * Gets visual structure, that is used for separators compute.
+	 * Gets VIPS block that is used for separators computing.
 	 * @return Visual structure
 	 */
-	public VisualStructure getVisualStructure()
+	public VipsBlock getVipsBlock()
 	{
-		return _visualStructure;
+		return _vipsBlock;
 	}
 
 	/**
-	 * Computes vertical visual separators from given visual structure.
-	 * @param visualStructure Visual structure
+	 * Computes vertical visual separators from given visual blocks.
+	 * @param vipsBlock Vips block
 	 */
-	private void findVerticalSeparators(VisualStructure visualStructure)
+	private void findVerticalSeparators(VipsBlock vipsBlock)
 	{
 		// if block is representing visual block
-		if (visualStructure.isVisualBlock())
+		if (vipsBlock.isVisualBlock())
 		{
 			// block vertical coordinates
-			int blockStart = visualStructure.getBox().getAbsoluteContentX();
-			int blockEnd = blockStart + visualStructure.getBox().getContentWidth();
+			int blockStart = vipsBlock.getBox().getAbsoluteContentX();
+			int blockEnd = blockStart + vipsBlock.getBox().getContentWidth();
 
 			// for each separator that we have in pool
 			for (Separator separator : _verticalSeparators)
@@ -68,7 +68,7 @@ public class VipsSeparatorDetector {
 				// find separator, that intersects with our visual block
 				if (blockStart <= separator.endPoint)
 				{
-					// next there are six relations where the separator and visual block can be
+					// next there are six relations that the separator and visual block can have
 
 					// if separator is inside visual block
 					if (blockStart < separator.startPoint && blockEnd > separator.endPoint)
@@ -143,25 +143,25 @@ public class VipsSeparatorDetector {
 			}
 		}
 
-		// detect visual separators for each child's structure
-		for (VisualStructure childVisualStructure : visualStructure.getChilds())
+		// detect visual separators for each child's blocks
+		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
 		{
-			findVerticalSeparators(childVisualStructure);
+			findVerticalSeparators(vipsBlockChild);
 		}
 	}
 
 	/**
-	 * Computes horizontal visual separators from given visual structure.
-	 * @param visualStructure Visual structure
+	 * Computes horizontal visual separators from given visual blocks.
+	 * @param vipsBlock Vips Block
 	 */
-	private void findHorizontalSeparators(VisualStructure visualStructure)
+	private void findHorizontalSeparators(VipsBlock vipsBlock)
 	{
 		// if block is representing visual block
-		if (visualStructure.isVisualBlock())
+		if (vipsBlock.isVisualBlock())
 		{
 			// block vertical coordinates
-			int blockStart = visualStructure.getBox().getAbsoluteContentY();
-			int blockEnd = blockStart + visualStructure.getBox().getContentHeight();
+			int blockStart = vipsBlock.getBox().getAbsoluteContentY();
+			int blockEnd = blockStart + vipsBlock.getBox().getContentHeight();
 
 			// for each separator that we have in pool
 			for (Separator separator : _horizontalSeparators)
@@ -169,7 +169,7 @@ public class VipsSeparatorDetector {
 				// find separator, that intersects with our visual block
 				if (blockStart <= separator.endPoint)
 				{
-					// next there are six relations where the separator and visual block can be
+					// next there are six relations that the separator and visual block can have
 
 					// if separator is inside visual block
 					if (blockStart < separator.startPoint && blockEnd > separator.endPoint)
@@ -244,23 +244,23 @@ public class VipsSeparatorDetector {
 			}
 		}
 
-		// detect visual separators for each child's structure
-		for (VisualStructure childVisualStructure : visualStructure.getChilds())
+		// detect visual separators for each child's blocks
+		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
 		{
-			findHorizontalSeparators(childVisualStructure);
+			findHorizontalSeparators(vipsBlockChild);
 		}
 	}
 
 	/**
-	 * Detects horizontal visual separators from given visual structure.
-	 * @param visualStructure Visual structure
+	 * Detects horizontal visual separators from given Vips block.
+	 * @param vipsBlock Vips block
 	 */
-	public void detectHorizontalSeparators(VisualStructure visualStructure)
+	public void detectHorizontalSeparators(VipsBlock vipsBlock)
 	{
 		_horizontalSeparators.clear();
 		_horizontalSeparators.add(new Separator(0, _height));
 
-		findHorizontalSeparators(visualStructure);
+		findHorizontalSeparators(vipsBlock);
 
 		//remove pool borders
 		_horizontalSeparators.remove(0);
@@ -270,15 +270,15 @@ public class VipsSeparatorDetector {
 	}
 
 	/**
-	 * Detects vertical visual separators from given visual structure.
-	 * @param visualStructure Visual structure
+	 * Detects vertical visual separators from given Vips block.
+	 * @param vipsBlock Vips block
 	 */
-	public void detectVerticalSeparators(VisualStructure visualStructure)
+	public void detectVerticalSeparators(VipsBlock vipsBlock)
 	{
 		_verticalSeparators.clear();
 		_verticalSeparators.add(new Separator(0, _width));
 
-		findVerticalSeparators(visualStructure);
+		findVerticalSeparators(vipsBlock);
 
 		//remove pool borders
 		_verticalSeparators.remove(0);
@@ -340,18 +340,18 @@ public class VipsSeparatorDetector {
 	 */
 	private void ruleTwo(Separator separator, boolean horizontal)
 	{
-		List<VisualStructure> overlappedElements = new ArrayList<VisualStructure>();
+		List<VipsBlock> overlappedElements = new ArrayList<VipsBlock>();
 		if (horizontal)
-			findHorizontalOverlappedElements(separator, _visualStructure, overlappedElements);
+			findHorizontalOverlappedElements(separator, _vipsBlock, overlappedElements);
 		else
-			findVerticalOverlappedElements(separator, _visualStructure, overlappedElements);
+			findVerticalOverlappedElements(separator, _vipsBlock, overlappedElements);
 
 		if (overlappedElements.size() == 0)
 			return;
 
-		for (VisualStructure visualStructure : overlappedElements)
+		for (VipsBlock vipsBlock : overlappedElements)
 		{
-			if (visualStructure.getBox().getNode().getNodeName().equals("hr"))
+			if (vipsBlock.getBox().getNode().getNodeName().equals("hr"))
 			{
 				separator.weight += 2;
 				break;
@@ -362,69 +362,69 @@ public class VipsSeparatorDetector {
 	/**
 	 * Finds elements that are overlapped with horizontal separator.
 	 * @param separator Separator, that we look at
-	 * @param visualStructure Visual structure of element
+	 * @param vipsBlock Visual block corresponding to element
 	 * @param result Elements, that we found
 	 */
 	private void findHorizontalOverlappedElements(Separator separator,
-			VisualStructure visualStructure, List<VisualStructure> result)
+			VipsBlock vipsBlock, List<VipsBlock> result)
 	{
-		int topEdge = visualStructure.getBox().getAbsoluteContentY();
-		int bottomEdge = topEdge + visualStructure.getBox().getContentHeight();
+		int topEdge = vipsBlock.getBox().getAbsoluteContentY();
+		int bottomEdge = topEdge + vipsBlock.getBox().getContentHeight();
 
 		// two upper edges of element are overlapped with separator
 		if (topEdge > separator.startPoint && topEdge < separator.endPoint && bottomEdge > separator.endPoint)
 		{
-			result.add(visualStructure);
+			result.add(vipsBlock);
 		}
 
 		// two bottom edges of element are overlapped with separator
 		if (topEdge < separator.startPoint && bottomEdge > separator.startPoint && bottomEdge < separator.endPoint)
 		{
-			result.add(visualStructure);
+			result.add(vipsBlock);
 		}
 
 		// all edges of element are overlapped with separator
 		if (topEdge >= separator.startPoint && bottomEdge <= separator.endPoint)
 		{
-			result.add(visualStructure);
+			result.add(vipsBlock);
 		}
 
-		for (VisualStructure childVisualStructure : visualStructure.getChilds())
-			findHorizontalOverlappedElements(separator, childVisualStructure, result);
+		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
+			findHorizontalOverlappedElements(separator, vipsBlockChild, result);
 	}
 
 	/**
 	 * Finds elements that are overlapped with vertical separator.
 	 * @param separator Separator, that we look at
-	 * @param visualStructure Visual structure of element
+	 * @param vipsBlock Visual block corresponding to element
 	 * @param result Elements, that we found
 	 */
 	private void findVerticalOverlappedElements(Separator separator,
-			VisualStructure visualStructure, List<VisualStructure> result)
+			VipsBlock vipsBlock, List<VipsBlock> result)
 	{
-		int leftEdge = visualStructure.getBox().getAbsoluteContentX();
-		int rightEdge = leftEdge + visualStructure.getBox().getContentWidth();
+		int leftEdge = vipsBlock.getBox().getAbsoluteContentX();
+		int rightEdge = leftEdge + vipsBlock.getBox().getContentWidth();
 
 		// two left edges of element are overlapped with separator
 		if (leftEdge > separator.startPoint && leftEdge < separator.endPoint && rightEdge > separator.endPoint)
 		{
-			result.add(visualStructure);
+			result.add(vipsBlock);
 		}
 
 		// two right edges of element are overlapped with separator
 		if (leftEdge < separator.startPoint && rightEdge > separator.startPoint && rightEdge < separator.endPoint)
 		{
-			result.add(visualStructure);
+			result.add(vipsBlock);
 		}
 
 		// all edges of element are overlapped with separator
 		if (leftEdge >= separator.startPoint && rightEdge <= separator.endPoint)
 		{
-			result.add(visualStructure);
+			result.add(vipsBlock);
 		}
 
-		for (VisualStructure childVisualStructure : visualStructure.getChilds())
-			findVerticalOverlappedElements(separator, childVisualStructure, result);
+		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
+			findVerticalOverlappedElements(separator, vipsBlockChild, result);
 	}
 
 	/**
@@ -435,20 +435,20 @@ public class VipsSeparatorDetector {
 	private void ruleThree(Separator separator, boolean horizontal)
 	{
 		// for vertical is represents elements on left side
-		List<VisualStructure> topAdjacentElements = new ArrayList<VisualStructure>();
+		List<VipsBlock> topAdjacentElements = new ArrayList<VipsBlock>();
 		// for vertical is represents elements on right side
-		List<VisualStructure> bottomAdjacentElements = new ArrayList<VisualStructure>();
+		List<VipsBlock> bottomAdjacentElements = new ArrayList<VipsBlock>();
 		if (horizontal)
-			findHorizontalAdjacentBlocks(separator, _visualStructure, topAdjacentElements, bottomAdjacentElements);
+			findHorizontalAdjacentBlocks(separator, _vipsBlock, topAdjacentElements, bottomAdjacentElements);
 		else
-			findVerticalAdjacentBlocks(separator, _visualStructure, topAdjacentElements, bottomAdjacentElements);
+			findVerticalAdjacentBlocks(separator, _vipsBlock, topAdjacentElements, bottomAdjacentElements);
 
 		if (topAdjacentElements.size() < 1 || bottomAdjacentElements.size() < 1)
 			return;
 
-		for (VisualStructure top : topAdjacentElements)
+		for (VipsBlock top : topAdjacentElements)
 		{
-			for (VisualStructure bottom : bottomAdjacentElements)
+			for (VipsBlock bottom : bottomAdjacentElements)
 			{
 				if (!top.getBgColor().equals(bottom.getBgColor()))
 					separator.weight += 2;
@@ -459,64 +459,64 @@ public class VipsSeparatorDetector {
 	/**
 	 * Finds elements that are adjacent to horizontal separator.
 	 * @param separator Separator, that we look at
-	 * @param visualStructure Visual structure of element
+	 * @param vipsBlock Visual block corresponding to element
 	 * @param resultTop Elements, that we found on top side of separator
 	 * @param resultBottom Elements, that we found on bottom side side of separator
 	 */
 	private void findHorizontalAdjacentBlocks(Separator separator,
-			VisualStructure visualStructure, List<VisualStructure> resultTop, List<VisualStructure> resultBottom)
+			VipsBlock vipsBlock, List<VipsBlock> resultTop, List<VipsBlock> resultBottom)
 	{
-		if (visualStructure.isVisualBlock())
+		if (vipsBlock.isVisualBlock())
 		{
-			int topEdge = visualStructure.getBox().getAbsoluteContentY();
-			int bottomEdge = topEdge + visualStructure.getBox().getContentHeight();
+			int topEdge = vipsBlock.getBox().getAbsoluteContentY();
+			int bottomEdge = topEdge + vipsBlock.getBox().getContentHeight();
 
 			// if box is adjancent to separator from bottom
 			if (topEdge == separator.endPoint + 1 && bottomEdge > separator.endPoint + 1)
 			{
-				resultBottom.add(visualStructure);
+				resultBottom.add(vipsBlock);
 			}
 
 			// if box is adjancent to separator from top
 			if (bottomEdge == separator.startPoint - 1 && topEdge < separator.startPoint - 1)
 			{
-				resultTop.add(0, visualStructure);
+				resultTop.add(0, vipsBlock);
 			}
 		}
 
-		for (VisualStructure childVisualStructure : visualStructure.getChilds())
-			findHorizontalAdjacentBlocks(separator, childVisualStructure, resultTop, resultBottom);
+		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
+			findHorizontalAdjacentBlocks(separator, vipsBlockChild, resultTop, resultBottom);
 	}
 
 	/**
 	 * Finds elements that are adjacent to vertical separator.
 	 * @param separator Separator, that we look at
-	 * @param visualStructure Visual structure of element
+	 * @param vipsBlock Visual block corresponding to element
 	 * @param resultLeft Elements, that we found on left side of separator
 	 * @param resultRight Elements, that we found on right side side of separator
 	 */
 	private void findVerticalAdjacentBlocks(Separator separator,
-			VisualStructure visualStructure, List<VisualStructure> resultLeft, List<VisualStructure> resultRight)
+			VipsBlock vipsBlock, List<VipsBlock> resultLeft, List<VipsBlock> resultRight)
 	{
-		if (visualStructure.isVisualBlock())
+		if (vipsBlock.isVisualBlock())
 		{
-			int leftEdge = visualStructure.getBox().getAbsoluteContentX() + 1;
-			int rightEdge = leftEdge + visualStructure.getBox().getContentWidth();
+			int leftEdge = vipsBlock.getBox().getAbsoluteContentX() + 1;
+			int rightEdge = leftEdge + vipsBlock.getBox().getContentWidth();
 
 			// if box is adjancent to separator from right
 			if (leftEdge == separator.endPoint + 1 && rightEdge > separator.endPoint + 1)
 			{
-				resultRight.add(visualStructure);
+				resultRight.add(vipsBlock);
 			}
 
 			// if box is adjancent to separator from left
 			if (rightEdge == separator.startPoint - 1 && leftEdge < separator.startPoint - 1)
 			{
-				resultLeft.add(0, visualStructure);
+				resultLeft.add(0, vipsBlock);
 			}
 		}
-		for (VisualStructure childVisualStructure : visualStructure.getChilds())
-			findVerticalAdjacentBlocks(separator, childVisualStructure, resultLeft, resultRight);
+		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
+			findVerticalAdjacentBlocks(separator, vipsBlockChild, resultLeft, resultRight);
 	}
 
 	/**
@@ -530,19 +530,19 @@ public class VipsSeparatorDetector {
 	 */
 	private void ruleFour(Separator separator)
 	{
-		List<VisualStructure> topAdjacentElements = new ArrayList<VisualStructure>();
-		List<VisualStructure> bottomAdjacentElements = new ArrayList<VisualStructure>();
+		List<VipsBlock> topAdjacentElements = new ArrayList<VipsBlock>();
+		List<VipsBlock> bottomAdjacentElements = new ArrayList<VipsBlock>();
 
-		findHorizontalAdjacentBlocks(separator, _visualStructure, topAdjacentElements, bottomAdjacentElements);
+		findHorizontalAdjacentBlocks(separator, _vipsBlock, topAdjacentElements, bottomAdjacentElements);
 
 		if (topAdjacentElements.size() < 1 || bottomAdjacentElements.size() < 1)
 			return;
 
 		boolean weightIncreased = false;
 
-		for (VisualStructure top : topAdjacentElements)
+		for (VipsBlock top : topAdjacentElements)
 		{
-			for (VisualStructure bottom : bottomAdjacentElements)
+			for (VipsBlock bottom : bottomAdjacentElements)
 			{
 				int diff = Math.abs(top.getFontSize() - bottom.getFontSize());
 				if (diff != 0)
@@ -560,9 +560,9 @@ public class VipsSeparatorDetector {
 		weightIncreased = false;
 		//TODO font weight
 
-		for (VisualStructure top : topAdjacentElements)
+		for (VipsBlock top : topAdjacentElements)
 		{
-			for (VisualStructure bottom : bottomAdjacentElements)
+			for (VipsBlock bottom : bottomAdjacentElements)
 			{
 				if (top.getFontSize() < bottom.getFontSize())
 				{
@@ -584,19 +584,19 @@ public class VipsSeparatorDetector {
 	 */
 	private void ruleFive(Separator separator)
 	{
-		List<VisualStructure> topAdjacentElements = new ArrayList<VisualStructure>();
-		List<VisualStructure> bottomAdjacentElements = new ArrayList<VisualStructure>();
+		List<VipsBlock> topAdjacentElements = new ArrayList<VipsBlock>();
+		List<VipsBlock> bottomAdjacentElements = new ArrayList<VipsBlock>();
 
-		findHorizontalAdjacentBlocks(separator, _visualStructure, topAdjacentElements, bottomAdjacentElements);
+		findHorizontalAdjacentBlocks(separator, _vipsBlock, topAdjacentElements, bottomAdjacentElements);
 
 		if (topAdjacentElements.size() < 1 || bottomAdjacentElements.size() < 1)
 			return;
 
 		boolean weightDecreased = false;
 
-		for (VisualStructure top : topAdjacentElements)
+		for (VipsBlock top : topAdjacentElements)
 		{
-			for (VisualStructure bottom : bottomAdjacentElements)
+			for (VipsBlock bottom : bottomAdjacentElements)
 			{
 				if (top.getBox() instanceof TextBox &&
 						bottom.getBox() instanceof TextBox)

@@ -25,7 +25,7 @@ import org.fit.cssbox.layout.Viewport;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class VipsOutput {
+public final class VipsOutput {
 
 	private Document doc = null;
 
@@ -51,29 +51,29 @@ public class VipsOutput {
 		return content;
 	}
 
-	private void writeVisualBlocks(Element parent, VisualStructure visualStructure)
+	private void writeVisualBlocks(Element parent, VipsBlock vipsBlock)
 	{
-		if (visualStructure.isVisualBlock())
+		if (vipsBlock.isVisualBlock())
 		{
 			Element layoutNode = doc.createElement("LayoutNode");
-			ElementBox elementBox = visualStructure.getElementBox();
+			ElementBox elementBox = vipsBlock.getElementBox();
 
 			if (elementBox == null)
 				return;
 
 			layoutNode.setAttribute("FrameSourceIndex", "neznam");
 			layoutNode.setAttribute("SourceIndex", "neznam");
-			layoutNode.setAttribute("DoC", String.valueOf(visualStructure.getDoC()));
-			layoutNode.setAttribute("ContainImg", String.valueOf(visualStructure.containImg()));
-			layoutNode.setAttribute("IsImg", String.valueOf(visualStructure.isImg()));
-			layoutNode.setAttribute("ContainTable", String.valueOf(visualStructure.containTable()));
-			layoutNode.setAttribute("ContainP", String.valueOf(visualStructure.containP()));
-			layoutNode.setAttribute("TextLen", String.valueOf(visualStructure.getTextLength()));
-			layoutNode.setAttribute("LinkTextLen", String.valueOf(visualStructure.getLinkTextLength()));
+			layoutNode.setAttribute("DoC", String.valueOf(vipsBlock.getDoC()));
+			layoutNode.setAttribute("ContainImg", String.valueOf(vipsBlock.containImg()));
+			layoutNode.setAttribute("IsImg", String.valueOf(vipsBlock.isImg()));
+			layoutNode.setAttribute("ContainTable", String.valueOf(vipsBlock.containTable()));
+			layoutNode.setAttribute("ContainP", String.valueOf(vipsBlock.containP()));
+			layoutNode.setAttribute("TextLen", String.valueOf(vipsBlock.getTextLength()));
+			layoutNode.setAttribute("LinkTextLen", String.valueOf(vipsBlock.getLinkTextLength()));
 			layoutNode.setAttribute("DOMCldNum", "neznam");
-			layoutNode.setAttribute("FontSize", String.valueOf(visualStructure.getFontSize()));
-			layoutNode.setAttribute("FontWeight", visualStructure.getFontWeight());
-			layoutNode.setAttribute("BgColor", visualStructure.getBgColor());
+			layoutNode.setAttribute("FontSize", String.valueOf(vipsBlock.getFontSize()));
+			layoutNode.setAttribute("FontWeight", vipsBlock.getFontWeight());
+			layoutNode.setAttribute("BgColor", vipsBlock.getBgColor());
 			//TODO overit tyto miry dole
 			layoutNode.setAttribute("ObjectRectLeft", String.valueOf(elementBox.getAbsoluteContentX()));
 			layoutNode.setAttribute("ObjectRectTop", String.valueOf(elementBox.getAbsoluteContentY()));
@@ -92,11 +92,11 @@ public class VipsOutput {
 			parent.appendChild(layoutNode);
 		}
 
-		for (VisualStructure childVisualStructure : visualStructure.getChilds())
-			writeVisualBlocks(parent, childVisualStructure);
+		for (VipsBlock childVipsBlock : vipsBlock.getChilds())
+			writeVisualBlocks(parent, childVipsBlock);
 	}
 
-	public void writeXML(VisualStructure visualStructure, Viewport pageViewport, String pageTitle)
+	public void writeXML(VipsBlock vipsBlock, Viewport pageViewport)
 	{
 		try
 		{
@@ -106,8 +106,7 @@ public class VipsOutput {
 			doc = docBuilder.newDocument();
 			Element vipsElement = doc.createElement("VIPSPage");
 
-			// TODO ziskat titulek stranky z viewportu pokud to jde; zkusit to nekde z elementBoxu.. kdyztak to proletet cely..
-			//			String pageTitle = pageViewport.getRootElement().getElementsByTagName("title").item(0).getNodeValue();
+			String pageTitle = pageViewport.getRootElement().getOwnerDocument().getElementsByTagName("title").item(0).getTextContent();
 
 			vipsElement.setAttribute("Url", pageViewport.getRootBox().getBase().toString());
 			vipsElement.setAttribute("PageTitle", pageTitle);
@@ -121,7 +120,7 @@ public class VipsOutput {
 
 			doc.appendChild(vipsElement);
 
-			writeVisualBlocks(vipsElement, visualStructure);
+			writeVisualBlocks(vipsElement, vipsBlock);
 
 			TransformerFactory transformerFactory = TransformerFactory.newInstance();
 			Transformer transformer = transformerFactory.newTransformer();

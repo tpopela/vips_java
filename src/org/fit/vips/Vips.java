@@ -78,27 +78,25 @@ public class Vips {
 			VipsParser vipsParser = new VipsParser(_viewport);
 			VipsOutput vipsOutput = new VipsOutput();
 
-			String pageTitle = _domAnalyzer.getRoot().getElementsByTagName("title").item(0).getTextContent();
-
 			vipsParser.parse();
 
 			VipsSeparatorGraphicsDetector vipsSeparatorDetector = new VipsSeparatorGraphicsDetector(_viewport.getContentWidth(), _viewport.getContentHeight());
 
-			VisualStructure visualStructure = vipsParser.getVisualStrucure();
+			VipsBlock vipsBlock = vipsParser.getVisualStrucure();
 
-			List<VisualStructure> list = new ArrayList<VisualStructure>();
+			List<VipsBlock> list = new ArrayList<VipsBlock>();
 			list = vipsParser.getVisualBlocks();
 
-			vipsSeparatorDetector.fillPool(visualStructure);
+			vipsSeparatorDetector.fillPool(vipsBlock);
 			vipsSeparatorDetector.saveToImage("pool");
-			vipsSeparatorDetector.setVisualStructure(visualStructure);
-			vipsSeparatorDetector.detectHorizontalSeparators(visualStructure);
-			vipsSeparatorDetector.detectVerticalSeparators(visualStructure);
+			vipsSeparatorDetector.setVipsBlock(vipsBlock);
+			vipsSeparatorDetector.detectHorizontalSeparators(vipsBlock);
+			vipsSeparatorDetector.detectVerticalSeparators(vipsBlock);
 			vipsSeparatorDetector.exportHorizontalSeparatorsToImage();
 			vipsSeparatorDetector.exportVerticalSeparatorsToImage();
-			vipsSeparatorDetector.exportAllToImage(visualStructure);
+			vipsSeparatorDetector.exportAllToImage(vipsBlock);
 
-			vipsOutput.writeXML(vipsParser.getVisualStrucure(), _viewport, pageTitle);
+			vipsOutput.writeXML(vipsParser.getVisualStrucure(), _viewport);
 
 			urlStream.close();
 		} catch (Exception e) {

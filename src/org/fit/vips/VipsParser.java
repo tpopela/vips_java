@@ -17,9 +17,8 @@ import org.w3c.dom.Node;
 
 public class VipsParser {
 
-	private VisualStructure _visualStructure = null;
-	private VisualStructure _currentVisualStructure = null;
-	private VisualStructure _tempVisualStructure = null;
+	private VipsBlock _vipsBlock = null;
+	private VipsBlock _currentVipsBlock = null;
 
 	private int _sizeTresholdWidth = 0;
 	private int _sizeTresholdHeight = 0;
@@ -33,7 +32,7 @@ public class VipsParser {
 	 */
 	public VipsParser(Viewport viewport) {
 		this._viewport = viewport;
-		this._visualStructure = new VisualStructure();
+		this._vipsBlock = new VipsBlock();
 		this._sizeTresholdHeight = 60;
 		this._sizeTresholdWidth = 60;
 	}
@@ -46,7 +45,7 @@ public class VipsParser {
 	 */
 	public VipsParser(Viewport viewport, int sizeTresholdWidth, int sizeTresholdHeight) {
 		this._viewport = viewport;
-		this._visualStructure = new VisualStructure();
+		this._vipsBlock = new VipsBlock();
 		this._sizeTresholdHeight = sizeTresholdHeight;
 		this._sizeTresholdWidth = sizeTresholdWidth;
 	}
@@ -58,9 +57,9 @@ public class VipsParser {
 	{
 		if (_viewport != null)
 		{
-			constructVisualStructureTree(_viewport.getElementBoxByName("body", false), _visualStructure);
-			divideVisualStructureTree(_visualStructure);
-			getVisualBlockCount(_visualStructure);
+			constructVipsBlockTree(_viewport.getElementBoxByName("body", false), _vipsBlock);
+			divideVipsBlockTree(_vipsBlock);
+			getVisualBlockCount(_vipsBlock);
 			System.err.println(String.valueOf(visualBlockCount));
 		}
 		else
@@ -69,45 +68,45 @@ public class VipsParser {
 
 	/**
 	 * Counts number of visual blocks in visual structure
-	 * @param visualStructure Visual structure
+	 * @param vipsBlock Visual structure
 	 */
-	private void getVisualBlockCount(VisualStructure visualStructure)
+	private void getVisualBlockCount(VipsBlock vipsBlock)
 	{
-		if (visualStructure.isVisualBlock())
+		if (vipsBlock.isVisualBlock())
 			visualBlockCount++;
 
-		for (VisualStructure visualStructureChild : visualStructure.getChilds())
+		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
 		{
-			if (!(visualStructureChild.getBox() instanceof TextBox))
-				getVisualBlockCount(visualStructureChild);
+			if (!(vipsBlockChild.getBox() instanceof TextBox))
+				getVisualBlockCount(vipsBlockChild);
 		}
 	}
 
-	private void findVisualBlocks(VisualStructure visualStructure, List<VisualStructure> list)
+	private void findVisualBlocks(VipsBlock vipsBlock, List<VipsBlock> list)
 	{
-		if (visualStructure.isVisualBlock())
-			list.add(visualStructure);
+		if (vipsBlock.isVisualBlock())
+			list.add(vipsBlock);
 
-		for (VisualStructure childVisualStructure : visualStructure.getChilds())
-			findVisualBlocks(childVisualStructure, list);
+		for (VipsBlock vipsStructureChild : vipsBlock.getChilds())
+			findVisualBlocks(vipsStructureChild, list);
 	}
 
-	public List<VisualStructure> getVisualBlocks()
+	public List<VipsBlock> getVisualBlocks()
 	{
-		List<VisualStructure> list = new ArrayList<VisualStructure>();
-		findVisualBlocks(_visualStructure, list);
+		List<VipsBlock> list = new ArrayList<VipsBlock>();
+		findVisualBlocks(_vipsBlock, list);
 
 		return list;
 	}
 
 	/**
-	 * Construct visual structure from viewport.
+	 * Construct VIPS block tree from viewport.
 	 * <p>
 	 * Starts from &lt;body&gt; element.
 	 * @param element Box that represents element
 	 * @param node Visual structure tree node
 	 */
-	private void constructVisualStructureTree(Box element, VisualStructure node)
+	private void constructVipsBlockTree(Box element, VipsBlock node)
 	{
 		node.setBox(element);
 
@@ -115,44 +114,44 @@ public class VipsParser {
 		{
 			for (Box box: ((ElementBox) element).getSubBoxList())
 			{
-				node.addChild(new VisualStructure());
-				constructVisualStructureTree(box, node.getChilds().get(node.getChilds().size()-1));
+				node.addChild(new VipsBlock());
+				constructVipsBlockTree(box, node.getChilds().get(node.getChilds().size()-1));
 			}
 		}
 	}
 
 	/**
 	 * Tries to divide DOM elements and finds visual blocks.
-	 * @param visualStructure Visual structure
+	 * @param vipsBlock Visual structure
 	 */
-	private void divideVisualStructureTree(VisualStructure visualStructure)
+	private void divideVipsBlockTree(VipsBlock vipsBlock)
 	{
-		_currentVisualStructure = visualStructure;
-		ElementBox elementBox = (ElementBox) visualStructure.getBox();
+		_currentVipsBlock = vipsBlock;
+		ElementBox elementBox = (ElementBox) vipsBlock.getBox();
 		System.err.println(elementBox.getNode().getNodeName());
 
 		// With VIPS rules it tries to determine if element is dividable
-		if (applyVipsRules(elementBox) && visualStructure.isDividable() && !visualStructure.isVisualBlock())
+		if (applyVipsRules(elementBox) && vipsBlock.isDividable() && !vipsBlock.isVisualBlock())
 		{
 			// if element is dividable, let's divide it
-			_currentVisualStructure.setAlreadyDivided(true);
-			for (VisualStructure visualStructureChild : visualStructure.getChilds())
+			_currentVipsBlock.setAlreadyDivided(true);
+			for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
 			{
-				if (!(visualStructureChild.getBox() instanceof TextBox))
-					divideVisualStructureTree(visualStructureChild);
+				if (!(vipsBlockChild.getBox() instanceof TextBox))
+					divideVipsBlockTree(vipsBlockChild);
 			}
 		}
 		else
 		{
 			// if element is not dividable
-			if (visualStructure.isDividable())
+			if (vipsBlock.isDividable())
 			{
 				System.err.println("Element " + elementBox.getNode().getNodeName() + " is visual block");
-				visualStructure.setIsVisualBlock(true);
+				vipsBlock.setIsVisualBlock(true);
 			}
 			else
 			{
-				if (visualStructure.isVisualBlock())
+				if (vipsBlock.isVisualBlock())
 					System.err.println("Element " + elementBox.getNode().getNodeName() + " is visual block");
 				else
 					System.err.println("Element " + elementBox.getNode().getNodeName() + " is not dividable");
@@ -346,6 +345,12 @@ public class VipsParser {
 		return retVal;
 	}
 
+	/**
+	 * Applies VIPS rules on block nodes other than &lt;P&gt; &lt;TD&gt;
+	 * &lt;TR&gt; &lt;TABLE&gt;.
+	 * @param node Node
+	 * @return Returns true if one of rules success and node is dividable.
+	 */
 	private boolean applyOtherNodeVipsRules(ElementBox node)
 	{
 		// 1 2 3 4 6 8 9 11
@@ -377,6 +382,11 @@ public class VipsParser {
 		return false;
 	}
 
+	/**
+	 * Applies VIPS rules on &lt;P&gt; node.
+	 * @param node Node
+	 * @return Returns true if one of rules success and node is dividable.
+	 */
 	private boolean applyPNodeVipsRules(ElementBox node)
 	{
 		// 1 2 3 4 5 6 8 9 11
@@ -420,6 +430,11 @@ public class VipsParser {
 		return false;
 	}
 
+	/**
+	 * Applies VIPS rules on &lt;TD&gt; node.
+	 * @param node Node
+	 * @return Returns true if one of rules success and node is dividable.
+	 */
 	private boolean applyTdNodeVipsRules(ElementBox node)
 	{
 		// 1 2 3 4 8 9 10 12
@@ -451,6 +466,11 @@ public class VipsParser {
 		return false;
 	}
 
+	/**
+	 * Applies VIPS rules on &TR;&gt; node.
+	 * @param node Node
+	 * @return Returns true if one of rules success and node is dividable.
+	 */
 	private boolean applyTrNodeVipsRules(ElementBox node)
 	{
 		// 1 2 3 7 9 12
@@ -476,6 +496,11 @@ public class VipsParser {
 		return false;
 	}
 
+	/**
+	 * Applies VIPS rules on &lt;TABLE&gt; node.
+	 * @param node Node
+	 * @return Returns true if one of rules success and node is dividable.
+	 */
 	private boolean applyTableNodeVipsRules(ElementBox node)
 	{
 		// 1 2 3 7 9 12
@@ -501,6 +526,11 @@ public class VipsParser {
 		return false;
 	}
 
+	/**
+	 * Applies VIPS rules on inline nodes.
+	 * @param node Node
+	 * @return Returns true if one of rules success and node is dividable.
+	 */
 	private boolean applyInlineTextNodeVipsRules(ElementBox node)
 	{
 		// 1 2 3 4 5 6 8 9 11
@@ -554,7 +584,7 @@ public class VipsParser {
 		{
 			if (!hasValidChildNodes(node))
 			{
-				_currentVisualStructure.setIsDividable(false);
+				_currentVipsBlock.setIsDividable(false);
 				return true;
 			}
 		}
@@ -611,12 +641,12 @@ public class VipsParser {
 		boolean result = true;
 		int cnt = 0;
 
-		for (VisualStructure visualStructure : _visualStructure.getChilds())
+		for (VipsBlock vipsBlock : _vipsBlock.getChilds())
 		{
-			if (visualStructure.getBox().getNode().getNodeName().equals(node.getNode().getNodeName()))
+			if (vipsBlock.getBox().getNode().getNodeName().equals(node.getNode().getNodeName()))
 			{
 				result = true;
-				isOnlyOneDomSubTree(node.getNode(), visualStructure.getBox().getNode(), result);
+				isOnlyOneDomSubTree(node.getNode(), vipsBlock.getBox().getNode(), result);
 
 				if (result)
 					cnt++;
@@ -683,13 +713,13 @@ public class VipsParser {
 		if (node.getSubBoxList().size() == 1 && node.getSubBox(0).getText().equals(" "))
 		{
 			// it's not visual block
-			_currentVisualStructure.setIsVisualBlock(false);
-			_currentVisualStructure.setIsDividable(false);
+			_currentVipsBlock.setIsVisualBlock(false);
+			_currentVipsBlock.setIsDividable(false);
 			return true;
 		}
 
-		_currentVisualStructure.setIsVisualBlock(true);
-		_currentVisualStructure.setIsDividable(false);
+		_currentVipsBlock.setIsVisualBlock(true);
+		_currentVipsBlock.setIsDividable(false);
 
 		String fontWeight = "";
 		int fontSize = 0;
@@ -704,11 +734,11 @@ public class VipsParser {
 				{
 					if (fontSize != childFontSize)
 					{
-						_currentVisualStructure.setDoC(9);
+						_currentVipsBlock.setDoC(9);
 						break;
 					}
 					else
-						_currentVisualStructure.setDoC(10);
+						_currentVipsBlock.setDoC(10);
 				}
 				else
 					fontSize = childFontSize;
@@ -725,11 +755,11 @@ public class VipsParser {
 				if (child.getStylePropertyValue("font-weight").toString().equals(fontWeight) &&
 						childFontSize == fontSize)
 				{
-					_currentVisualStructure.setDoC(10);
+					_currentVipsBlock.setDoC(10);
 				}
 				else
 				{
-					_currentVisualStructure.setDoC(9);
+					_currentVipsBlock.setDoC(9);
 					break;
 				}
 			}
@@ -816,16 +846,16 @@ public class VipsParser {
 			return false;
 
 		//String nodeBgColor = node.getStylePropertyValue("background-color");
-		String nodeBgColor = _currentVisualStructure.getBgColor();
+		String nodeBgColor = _currentVipsBlock.getBgColor();
 
-		for (VisualStructure childVisualStructure : _currentVisualStructure.getChilds())
+		for (VipsBlock vipsStructureChild : _currentVipsBlock.getChilds())
 		{
-			if (!(childVisualStructure.getBgColor().equals(nodeBgColor)))
+			if (!(vipsStructureChild.getBgColor().equals(nodeBgColor)))
 			{
-				childVisualStructure.setIsDividable(false);
-				childVisualStructure.setIsVisualBlock(true);
+				vipsStructureChild.setIsDividable(false);
+				vipsStructureChild.setIsVisualBlock(true);
 				// TODO DoC values
-				childVisualStructure.setDoC(7);
+				vipsStructureChild.setDoC(7);
 				return true;
 			}
 		}
@@ -876,8 +906,8 @@ public class VipsParser {
 				node.getHeight() > _sizeTresholdHeight)
 			return false;
 		 */
-		_currentVisualStructure.setIsVisualBlock(true);
-		_currentVisualStructure.setIsDividable(false);
+		_currentVipsBlock.setIsVisualBlock(true);
+		_currentVipsBlock.setIsDividable(false);
 
 		//TODO DoC Part
 		return true;
@@ -914,8 +944,8 @@ public class VipsParser {
 			return true;
 
 		//TODO set DOC
-		_currentVisualStructure.setIsVisualBlock(true);
-		_currentVisualStructure.setIsDividable(false);
+		_currentVipsBlock.setIsVisualBlock(true);
+		_currentVipsBlock.setIsDividable(false);
 
 		return false;
 	}
@@ -933,11 +963,11 @@ public class VipsParser {
 	{
 		System.err.println("Applying rule Ten on " + node.getNode().getNodeName() + " node");
 
-		_tempVisualStructure = null;
-		findPreviousSiblingNodeVisualStructure(node.getNode().getPreviousSibling(), _visualStructure);
+		VipsBlock previousSiblingVipsBlock = null;
+		findPreviousSiblingNodeVipsStructure(node.getNode().getPreviousSibling(), _vipsBlock, previousSiblingVipsBlock);
 
-		if (_tempVisualStructure != null)
-			if (_tempVisualStructure.isAlreadyDivided())
+		if (previousSiblingVipsBlock != null)
+			if (previousSiblingVipsBlock.isAlreadyDivided())
 				return true;
 
 		return false;
@@ -973,8 +1003,8 @@ public class VipsParser {
 	{
 		System.err.println("Applying rule Twelve on " + node.getNode().getNodeName() + " node");
 
-		_currentVisualStructure.setIsDividable(false);
-		_currentVisualStructure.setIsVisualBlock(true);
+		_currentVipsBlock.setIsDividable(false);
+		_currentVipsBlock.setIsVisualBlock(true);
 
 		//TODO DoC Part
 		return true;
@@ -1012,17 +1042,23 @@ public class VipsParser {
 		this._sizeTresholdHeight = sizeTresholdHeight;
 	}
 
-	public VisualStructure getVisualStrucure()
+	public VipsBlock getVisualStrucure()
 	{
-		return _visualStructure;
+		return _vipsBlock;
 	}
 
-	private void findPreviousSiblingNodeVisualStructure(Node node, VisualStructure visualStructure)
+	/**
+	 * Finds previous sibling node's VIPS block.
+	 * @param node Node
+	 * @param vipsBlock Actual VIPS block
+	 * @param foundBlock VIPS block for given node
+	 */
+	private void findPreviousSiblingNodeVipsStructure(Node node, VipsBlock vipsBlock, VipsBlock foundBlock)
 	{
-		if (!visualStructure.getBox().getNode().equals(node))
-			_tempVisualStructure = visualStructure;
+		if (!vipsBlock.getBox().getNode().equals(node))
+			foundBlock = vipsBlock;
 		else
-			for (VisualStructure childVisualStructure : visualStructure.getChilds())
-				findPreviousSiblingNodeVisualStructure(node, childVisualStructure);
+			for (VipsBlock vipsStructureChild : vipsBlock.getChilds())
+				findPreviousSiblingNodeVipsStructure(node, vipsStructureChild, foundBlock);
 	}
 }

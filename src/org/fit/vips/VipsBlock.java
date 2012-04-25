@@ -1,7 +1,7 @@
 /*
  * Tomas Popela, xpopel11, 2012
  * VIPS - Visual Internet Page Segmentation
- * Module - VisualStructure.java
+ * Module - VipsBlock.java
  */
 
 package org.fit.vips;
@@ -13,12 +13,12 @@ import org.fit.cssbox.layout.Box;
 import org.fit.cssbox.layout.ElementBox;
 import org.w3c.dom.Element;
 
-public class VisualStructure {
+public class VipsBlock {
 
 	//rendered Box, that corresponds to DOM element
 	private Box _box = null;
 	//children of this node
-	private List<VisualStructure> _children = null;
+	private List<VipsBlock> _children = null;
 	//node id
 	private int _id = 0;
 	//node's Degree Of Coherence
@@ -44,12 +44,12 @@ public class VisualStructure {
 	//length of text in links in node
 	private int _linkTextLen = 0;
 
-	public VisualStructure() {
-		this._children = new ArrayList<VisualStructure>();
+	public VipsBlock() {
+		this._children = new ArrayList<VipsBlock>();
 	}
 
-	public VisualStructure(int id, VisualStructure node) {
-		this._children = new ArrayList<VisualStructure>();
+	public VipsBlock(int id, VipsBlock node) {
+		this._children = new ArrayList<VipsBlock>();
 		setId(id);
 		addChild(node);
 	}
@@ -79,7 +79,7 @@ public class VisualStructure {
 	}
 
 	/**
-	 * Checks if visual structure is image.
+	 * Checks if visual block is an image.
 	 */
 	private void checkIsImg()
 	{
@@ -90,81 +90,81 @@ public class VisualStructure {
 	}
 
 	/**
-	 * Checks if visual structure contains image.
-	 * @param visualStucture Visual structure
+	 * Checks if visual block contains image.
+	 * @param vipsBlock Visual block
 	 */
-	private void checkContainImg(VisualStructure visualStucture)
+	private void checkContainImg(VipsBlock vipsBlock)
 	{
-		if (visualStucture.getBox().getNode().getNodeName().equals("img"))
+		if (vipsBlock.getBox().getNode().getNodeName().equals("img"))
 		{
-			visualStucture._isImg = true;
+			vipsBlock._isImg = true;
 			this._containImg++;
 		}
 
-		for (VisualStructure childVisualStructure : visualStucture.getChilds())
-			checkContainImg(childVisualStructure);
+		for (VipsBlock childVipsBlock : vipsBlock.getChilds())
+			checkContainImg(childVipsBlock);
 	}
 
 	/**
-	 * Checks if visual structure contains table.
-	 * @param visualStucture Visual structure
+	 * Checks if visual block contains table.
+	 * @param vipsBlock Visual block
 	 */
-	private void checkContainTable(VisualStructure visualStucture)
+	private void checkContainTable(VipsBlock vipsBlock)
 	{
-		if (visualStucture.getBox().getNode().getNodeName().equals("table"))
+		if (vipsBlock.getBox().getNode().getNodeName().equals("table"))
 			this._containTable = true;
 
-		for (VisualStructure childVisualStructure : visualStucture.getChilds())
-			checkContainTable(childVisualStructure);
+		for (VipsBlock childVipsBlock : vipsBlock.getChilds())
+			checkContainTable(childVipsBlock);
 	}
 
 	/**
-	 * Checks if visual structure contains paragraph.
-	 * @param visualStucture Visual structure
+	 * Checks if visual block contains paragraph.
+	 * @param vipsBlock Visual block
 	 */
-	private void checkContainP(VisualStructure visualStucture)
+	private void checkContainP(VipsBlock vipsBlock)
 	{
-		if (visualStucture.getBox().getNode().getNodeName().equals("p"))
+		if (vipsBlock.getBox().getNode().getNodeName().equals("p"))
 			this._containP++;
 
-		for (VisualStructure childVisualStructure : visualStucture.getChilds())
-			checkContainP(childVisualStructure);
+		for (VipsBlock childVipsBlock : vipsBlock.getChilds())
+			checkContainP(childVipsBlock);
 	}
 
 	/**
 	 * Counts length of text in links in visual block
-	 * @param visualStucture Visual structure
+	 * @param vipsBlock Visual block
 	 */
-	private void countLinkTextLength(VisualStructure visualStucture)
+	private void countLinkTextLength(VipsBlock vipsBlock)
 	{
-		if (visualStucture.getBox().getNode().getNodeName().equals("a"))
+		if (vipsBlock.getBox().getNode().getNodeName().equals("a"))
 		{
-			int linkLength = visualStucture.getBox().getNode().getTextContent().length();
-			System.err.println(_linkTextLen + " + " + linkLength + "  " + visualStucture.getBox().getNode().getTextContent());
+			int linkLength = vipsBlock.getBox().getNode().getTextContent().length();
+			System.err.println(_linkTextLen + " + " + linkLength + "  " + vipsBlock.getBox().getNode().getTextContent());
 			_linkTextLen += linkLength;
 
 		}
 
-		for (VisualStructure childVisualStructure : visualStucture.getChilds())
-			countLinkTextLength(childVisualStructure);
+		for (VipsBlock childVipsBlock : vipsBlock.getChilds())
+			countLinkTextLength(childVipsBlock);
 	}
 
 	/**
 	 * Count length of text in visual block
-	 * @param visualStucture Visual structure
+	 * @param vipsBlock Visual block
 	 */
-	private void countTextLength(VisualStructure visualStucture)
+	private void countTextLength(VipsBlock vipsBlock)
 	{
 		// TODO V ceske verzi www.fit.vutbr.cz je v orginalnim VIPS delka 3802, u me 3810
-		_textLen = visualStucture.getBox().getNode().getTextContent().replaceAll("\n", "").length();
+		_textLen = vipsBlock.getBox().getNode().getTextContent().replaceAll("\n", "").length();
 	}
 
-	public void addChild(VisualStructure child)
+	public void addChild(VipsBlock child)
 	{
 		_children.add(child);
 	}
 
-	public List<VisualStructure> getChilds()
+	public List<VipsBlock> getChilds()
 	{
 		return _children;
 	}
