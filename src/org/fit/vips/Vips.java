@@ -9,7 +9,6 @@ package org.fit.vips;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.fit.cssbox.css.CSSNorm;
@@ -77,26 +76,30 @@ public class Vips {
 
 			VipsParser vipsParser = new VipsParser(_viewport);
 			VipsOutput vipsOutput = new VipsOutput();
+			VipsSeparatorGraphicsDetector vipsSeparatorDetector = new VipsSeparatorGraphicsDetector(_viewport.getContentWidth(), _viewport.getContentHeight());
+			VisualStructureConstructor visualStructureConstructor = new VisualStructureConstructor();
 
 			vipsParser.parse();
+			VipsBlock vipsBlocks = vipsParser.getVipsBlocks();
 
-			VipsSeparatorGraphicsDetector vipsSeparatorDetector = new VipsSeparatorGraphicsDetector(_viewport.getContentWidth(), _viewport.getContentHeight());
-
-			VipsBlock vipsBlock = vipsParser.getVisualStrucure();
-
-			List<VipsBlock> list = new ArrayList<VipsBlock>();
-			list = vipsParser.getVisualBlocks();
-
-			vipsSeparatorDetector.fillPool(vipsBlock);
+			vipsSeparatorDetector.setVipsBlock(vipsBlocks);
+			vipsSeparatorDetector.fillPool();
 			vipsSeparatorDetector.saveToImage("pool");
-			vipsSeparatorDetector.setVipsBlock(vipsBlock);
-			vipsSeparatorDetector.detectHorizontalSeparators(vipsBlock);
-			vipsSeparatorDetector.detectVerticalSeparators(vipsBlock);
+			vipsSeparatorDetector.detectHorizontalSeparators();
+			vipsSeparatorDetector.detectVerticalSeparators();
 			vipsSeparatorDetector.exportHorizontalSeparatorsToImage();
 			vipsSeparatorDetector.exportVerticalSeparatorsToImage();
-			vipsSeparatorDetector.exportAllToImage(vipsBlock);
+			vipsSeparatorDetector.exportAllToImage();
 
-			vipsOutput.writeXML(vipsParser.getVisualStrucure(), _viewport);
+			List<Separator> horizontalSeparators = vipsSeparatorDetector.getHorizontalSeparators();
+			List<Separator> verticalSeparators = vipsSeparatorDetector.getVerticalSeparators();
+
+			visualStructureConstructor.setVipsBlock(vipsBlocks);
+			visualStructureConstructor.setSeparators(horizontalSeparators, verticalSeparators);
+			visualStructureConstructor.setPageSize(_viewport.getWidth(), _viewport.getHeight());
+			visualStructureConstructor.constructVisualStructure();
+
+			vipsOutput.writeXML(vipsParser.getVipsBlocks(), _viewport);
 
 			urlStream.close();
 		} catch (Exception e) {

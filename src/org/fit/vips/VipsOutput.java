@@ -92,7 +92,7 @@ public final class VipsOutput {
 			parent.appendChild(layoutNode);
 		}
 
-		for (VipsBlock childVipsBlock : vipsBlock.getChilds())
+		for (VipsBlock childVipsBlock : vipsBlock.getChildren())
 			writeVisualBlocks(parent, childVipsBlock);
 	}
 

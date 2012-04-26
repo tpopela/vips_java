@@ -1,9 +1,15 @@
+/*
+ * Tomas Popela, xpopel11, 2012
+ * VIPS - Visual Internet Page Segmentation
+ * Module - Separator.java
+ */
+
 package org.fit.vips;
 
 /**
  * Class that represents visual separator
  */
-public class Separator {
+public class Separator implements Comparable<Separator> {
 	public int startPoint;
 	public int endPoint;
 	public int weight = 10;
@@ -24,5 +30,11 @@ public class Separator {
 		this.startPoint = start;
 		this.endPoint = end;
 		this.weight = weight;
+	}
+
+	@Override
+	public int compareTo(Separator otherSeparator)
+	{
+		return this.weight - otherSeparator.weight;
 	}
 }

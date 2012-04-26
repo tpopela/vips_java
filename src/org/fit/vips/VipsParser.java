@@ -17,7 +17,7 @@ import org.w3c.dom.Node;
 
 public class VipsParser {
 
-	private VipsBlock _vipsBlock = null;
+	private VipsBlock _vipsBlocks = null;
 	private VipsBlock _currentVipsBlock = null;
 
 	private int _sizeTresholdWidth = 0;
@@ -32,9 +32,9 @@ public class VipsParser {
 	 */
 	public VipsParser(Viewport viewport) {
 		this._viewport = viewport;
-		this._vipsBlock = new VipsBlock();
-		this._sizeTresholdHeight = 60;
-		this._sizeTresholdWidth = 60;
+		this._vipsBlocks = new VipsBlock();
+		this._sizeTresholdHeight = 80;
+		this._sizeTresholdWidth = 80;
 	}
 
 	/**
@@ -45,7 +45,7 @@ public class VipsParser {
 	 */
 	public VipsParser(Viewport viewport, int sizeTresholdWidth, int sizeTresholdHeight) {
 		this._viewport = viewport;
-		this._vipsBlock = new VipsBlock();
+		this._vipsBlocks = new VipsBlock();
 		this._sizeTresholdHeight = sizeTresholdHeight;
 		this._sizeTresholdWidth = sizeTresholdWidth;
 	}
@@ -57,9 +57,9 @@ public class VipsParser {
 	{
 		if (_viewport != null)
 		{
-			constructVipsBlockTree(_viewport.getElementBoxByName("body", false), _vipsBlock);
-			divideVipsBlockTree(_vipsBlock);
-			getVisualBlockCount(_vipsBlock);
+			constructVipsBlockTree(_viewport.getElementBoxByName("body", false), _vipsBlocks);
+			divideVipsBlockTree(_vipsBlocks);
+			getVisualBlockCount(_vipsBlocks);
 			System.err.println(String.valueOf(visualBlockCount));
 		}
 		else
@@ -75,7 +75,7 @@ public class VipsParser {
 		if (vipsBlock.isVisualBlock())
 			visualBlockCount++;
 
-		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
+		for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
 		{
 			if (!(vipsBlockChild.getBox() instanceof TextBox))
 				getVisualBlockCount(vipsBlockChild);
@@ -87,14 +87,14 @@ public class VipsParser {
 		if (vipsBlock.isVisualBlock())
 			list.add(vipsBlock);
 
-		for (VipsBlock vipsStructureChild : vipsBlock.getChilds())
+		for (VipsBlock vipsStructureChild : vipsBlock.getChildren())
 			findVisualBlocks(vipsStructureChild, list);
 	}
 
 	public List<VipsBlock> getVisualBlocks()
 	{
 		List<VipsBlock> list = new ArrayList<VipsBlock>();
-		findVisualBlocks(_vipsBlock, list);
+		findVisualBlocks(_vipsBlocks, list);
 
 		return list;
 	}
@@ -115,7 +115,7 @@ public class VipsParser {
 			for (Box box: ((ElementBox) element).getSubBoxList())
 			{
 				node.addChild(new VipsBlock());
-				constructVipsBlockTree(box, node.getChilds().get(node.getChilds().size()-1));
+				constructVipsBlockTree(box, node.getChildren().get(node.getChildren().size()-1));
 			}
 		}
 	}
@@ -135,7 +135,7 @@ public class VipsParser {
 		{
 			// if element is dividable, let's divide it
 			_currentVipsBlock.setAlreadyDivided(true);
-			for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
+			for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
 			{
 				if (!(vipsBlockChild.getBox() instanceof TextBox))
 					divideVipsBlockTree(vipsBlockChild);
@@ -151,12 +151,37 @@ public class VipsParser {
 			}
 			else
 			{
+				if (ruleImgLink(elementBox))
+					vipsBlock.setIsVisualBlock(true);
+
 				if (vipsBlock.isVisualBlock())
 					System.err.println("Element " + elementBox.getNode().getNodeName() + " is visual block");
 				else
 					System.err.println("Element " + elementBox.getNode().getNodeName() + " is not dividable");
 			}
 		}
+	}
+
+	/**
+	 * If there is image as link mark it as visual block.
+	 * @param elementBox Node
+	 * @return Returns true if rule was applied otherwise false.
+	 */
+	private boolean ruleImgLink(ElementBox elementBox)
+	{
+		//TODO extra rule
+		Node node = elementBox.getNode();
+
+		if (!node.getNodeName().equals("img"))
+			return false;
+
+		if (!node.getParentNode().getNodeName().equals("a"))
+			return false;
+
+		if (!node.getParentNode().getFirstChild().getNodeName().equals("img"))
+			return false;
+
+		return true;
 	}
 
 	/**
@@ -641,7 +666,7 @@ public class VipsParser {
 		boolean result = true;
 		int cnt = 0;
 
-		for (VipsBlock vipsBlock : _vipsBlock.getChilds())
+		for (VipsBlock vipsBlock : _vipsBlocks.getChildren())
 		{
 			if (vipsBlock.getBox().getNode().getNodeName().equals(node.getNode().getNodeName()))
 			{
@@ -848,7 +873,7 @@ public class VipsParser {
 		//String nodeBgColor = node.getStylePropertyValue("background-color");
 		String nodeBgColor = _currentVipsBlock.getBgColor();
 
-		for (VipsBlock vipsStructureChild : _currentVipsBlock.getChilds())
+		for (VipsBlock vipsStructureChild : _currentVipsBlock.getChildren())
 		{
 			if (!(vipsStructureChild.getBgColor().equals(nodeBgColor)))
 			{
@@ -964,7 +989,10 @@ public class VipsParser {
 		System.err.println("Applying rule Ten on " + node.getNode().getNodeName() + " node");
 
 		VipsBlock previousSiblingVipsBlock = null;
-		findPreviousSiblingNodeVipsStructure(node.getNode().getPreviousSibling(), _vipsBlock, previousSiblingVipsBlock);
+		findPreviousSiblingNodeVipsBlock(node.getNode().getPreviousSibling(), _vipsBlocks, previousSiblingVipsBlock);
+
+		if (previousSiblingVipsBlock == null)
+			return false;
 
 		if (previousSiblingVipsBlock != null)
 			if (previousSiblingVipsBlock.isAlreadyDivided())
@@ -1042,9 +1070,9 @@ public class VipsParser {
 		this._sizeTresholdHeight = sizeTresholdHeight;
 	}
 
-	public VipsBlock getVisualStrucure()
+	public VipsBlock getVipsBlocks()
 	{
-		return _vipsBlock;
+		return _vipsBlocks;
 	}
 
 	/**
@@ -1053,12 +1081,12 @@ public class VipsParser {
 	 * @param vipsBlock Actual VIPS block
 	 * @param foundBlock VIPS block for given node
 	 */
-	private void findPreviousSiblingNodeVipsStructure(Node node, VipsBlock vipsBlock, VipsBlock foundBlock)
+	private void findPreviousSiblingNodeVipsBlock(Node node, VipsBlock vipsBlock, VipsBlock foundBlock)
 	{
-		if (!vipsBlock.getBox().getNode().equals(node))
+		if (vipsBlock.getBox().getNode().equals(node))
 			foundBlock = vipsBlock;
 		else
-			for (VipsBlock vipsStructureChild : vipsBlock.getChilds())
-				findPreviousSiblingNodeVipsStructure(node, vipsStructureChild, foundBlock);
+			for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
+				findPreviousSiblingNodeVipsBlock(node, vipsBlockChild, foundBlock);
 	}
 }

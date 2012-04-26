@@ -144,7 +144,7 @@ public class VipsSeparatorDetector {
 		}
 
 		// detect visual separators for each child's blocks
-		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
+		for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
 		{
 			findVerticalSeparators(vipsBlockChild);
 		}
@@ -245,7 +245,7 @@ public class VipsSeparatorDetector {
 		}
 
 		// detect visual separators for each child's blocks
-		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
+		for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
 		{
 			findHorizontalSeparators(vipsBlockChild);
 		}
@@ -389,7 +389,7 @@ public class VipsSeparatorDetector {
 			result.add(vipsBlock);
 		}
 
-		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
+		for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
 			findHorizontalOverlappedElements(separator, vipsBlockChild, result);
 	}
 
@@ -423,7 +423,7 @@ public class VipsSeparatorDetector {
 			result.add(vipsBlock);
 		}
 
-		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
+		for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
 			findVerticalOverlappedElements(separator, vipsBlockChild, result);
 	}
 
@@ -484,7 +484,7 @@ public class VipsSeparatorDetector {
 			}
 		}
 
-		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
+		for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
 			findHorizontalAdjacentBlocks(separator, vipsBlockChild, resultTop, resultBottom);
 	}
 
@@ -515,7 +515,7 @@ public class VipsSeparatorDetector {
 				resultLeft.add(0, vipsBlock);
 			}
 		}
-		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
+		for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
 			findVerticalAdjacentBlocks(separator, vipsBlockChild, resultLeft, resultRight);
 	}
 
@@ -609,5 +609,21 @@ public class VipsSeparatorDetector {
 			if (weightDecreased)
 				break;
 		}
+	}
+
+	/**
+	 * @return the _horizontalSeparators
+	 */
+	public List<Separator> getHorizontalSeparators()
+	{
+		return _horizontalSeparators;
+	}
+
+	/**
+	 * @return the _verticalSeparators
+	 */
+	public List<Separator> getVerticalSeparators()
+	{
+		return _verticalSeparators;
 	}
 }

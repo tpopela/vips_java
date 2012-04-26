@@ -13,6 +13,7 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -27,9 +28,10 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 
 	Graphics2D _pool = null;
 	BufferedImage _image = null;
-	VipsBlock _vipsBlock = null;
-	List<Separator> _horizontalSeparators = null;
-	List<Separator> _verticalSeparators = null;
+	VipsBlock _vipsBlocks = null;
+	List<VipsBlock> _visualBlocks = null;
+	private List<Separator> _horizontalSeparators = null;
+	private List<Separator> _verticalSeparators = null;
 
 	/**
 	 * Defaults constructor.
@@ -37,9 +39,10 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	 * @param height Pools height
 	 */
 	public VipsSeparatorGraphicsDetector(int width, int height) {
-		_image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
-		_horizontalSeparators = new ArrayList<Separator>();
-		_verticalSeparators = new ArrayList<Separator>();
+		this._image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
+		this._horizontalSeparators = new ArrayList<Separator>();
+		this._verticalSeparators = new ArrayList<Separator>();
+		this._visualBlocks = new ArrayList<VipsBlock>();
 		createPool();
 	}
 
@@ -68,19 +71,28 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 		g.drawImage(_image, 0, 0, null);
 	}
 
+
+	private void fillPoolWithBlocks(VipsBlock vipsBlock)
+	{
+		if (vipsBlock.isVisualBlock())
+		{
+			addVisualBlock(vipsBlock);
+			_visualBlocks.add(vipsBlock);
+		}
+
+		for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
+			fillPoolWithBlocks(vipsBlockChild);
+	}
+
 	/**
 	 * Fills pool with all visual blocks from VIPS blocks.
 	 * 
 	 * @param vipsBlock
 	 *            Visual block
 	 */
-	public void fillPool(VipsBlock vipsBlock)
+	public void fillPool()
 	{
-		if (vipsBlock.isVisualBlock())
-			addVisualBlock(vipsBlock);
-
-		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
-			fillPool(vipsBlockChild);
+		fillPoolWithBlocks(_vipsBlocks);
 	}
 
 	/**
@@ -101,8 +113,10 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	 * @param vipsBlock Visual structure
 	 */
 	public void setVipsBlock(VipsBlock vipsBlock)
-	{	//TODO vkladat visualStructure do parametru metod nebo vyuzivat ve vsech tu, kterou vlozim pomoci teto funkce?
-		this._vipsBlock = vipsBlock;
+	{
+		this._vipsBlocks = vipsBlock;
+		fillPoolWithBlocks(vipsBlock);
+		createPool();
 	}
 
 	/**
@@ -111,17 +125,34 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	 */
 	public VipsBlock getVipsBlock()
 	{
-		return _vipsBlock;
+		return _vipsBlocks;
+	}
+
+	/**
+	 * Sets VIPS block, that will be used for separators computing.
+	 * @param vipsBlock Visual structure
+	 */
+	public void setVisualBlocks(List<VipsBlock> visualBlocks)
+	{
+		this._visualBlocks = visualBlocks;
+	}
+
+	/**
+	 * Gets VIPS block that is used for separators computing.
+	 * @return Visual structure
+	 */
+	public List<VipsBlock> getVisualBlocks()
+	{
+		return _visualBlocks;
 	}
 
 	/**
 	 * Computes vertical visual separators from given visual blocks.
 	 * @param vipsBlock Vips block
 	 */
-	private void findVerticalSeparators(VipsBlock vipsBlock)
+	private void findVerticalSeparators()
 	{
-		// if block is representing visual block
-		if (vipsBlock.isVisualBlock())
+		for (VipsBlock vipsBlock : _visualBlocks)
 		{
 			// add new visual block to pool
 			addVisualBlock(vipsBlock);
@@ -210,22 +241,15 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 				}
 			}
 		}
-
-		// detect visual separators for each child's blocks
-		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
-		{
-			findVerticalSeparators(vipsBlockChild);
-		}
 	}
 
 	/**
 	 * Computes horizontal visual separators from given visual blocks.
 	 * @param vipsBlock Vips Block
 	 */
-	private void findHorizontalSeparators(VipsBlock vipsBlock)
+	private void findHorizontalSeparators()
 	{
-		// if block is representing visual block
-		if (vipsBlock.isVisualBlock())
+		for (VipsBlock vipsBlock : _visualBlocks)
 		{
 			// add new visual block to pool
 			addVisualBlock(vipsBlock);
@@ -314,50 +338,85 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 				}
 			}
 		}
-
-		// detect visual separators for each child's blocks
-		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
-		{
-			findHorizontalSeparators(vipsBlockChild);
-		}
 	}
 
 	/**
-	 * Detects horizontal visual separators from given Vips block.
-	 * @param vipsBlock Vips block
+	 * Detects horizontal visual separators from Vips blocks.
 	 */
-	public void detectHorizontalSeparators(VipsBlock vipsBlock)
+	public void detectHorizontalSeparators()
 	{
+		if (_visualBlocks.size() == 0)
+		{
+			System.err.println("I don't have any visual blocks!");
+			return;
+		}
+
 		createPool();
 		_horizontalSeparators.clear();
 		_horizontalSeparators.add(new Separator(0, _image.getHeight()));
 
-		findHorizontalSeparators(vipsBlock);
+		findHorizontalSeparators();
 
 		//remove pool borders
 		_horizontalSeparators.remove(0);
 		_horizontalSeparators.remove(_horizontalSeparators.size()-1);
 
+		//cleanUpSeparators(_horizontalSeparators);
 		computeHorizontalWeights();
+		sortSeparatorsByWeight(_horizontalSeparators);
 	}
 
 	/**
-	 * Detects vertical visual separators from given Vips block.
-	 * @param vipsBlock Vips block
+	 * Detects vertical visual separators from Vips blocks.
 	 */
-	public void detectVerticalSeparators(VipsBlock vipsBlock)
+	public void detectVerticalSeparators()
 	{
+		if (_visualBlocks.size() == 0)
+		{
+			System.err.println("I don't have any visual blocks!");
+			return;
+		}
+
 		createPool();
 		_verticalSeparators.clear();
 		_verticalSeparators.add(new Separator(0, _image.getWidth()));
 
-		findVerticalSeparators(vipsBlock);
+		findVerticalSeparators();
 
 		//remove pool borders
 		_verticalSeparators.remove(0);
 		_verticalSeparators.remove(_verticalSeparators.size()-1);
 
+		//cleanUpSeparators(_verticalSeparators);
 		computeVerticalWeights();
+		sortSeparatorsByWeight(_verticalSeparators);
+	}
+
+	/**
+	 * Sorts given separators by it's weight.
+	 * @param separators Separators
+	 */
+	private void sortSeparatorsByWeight(List<Separator> separators)
+	{
+		Collections.sort(separators);
+	}
+
+	/**
+	 * Removes separator, that's width is smaller than 5 pixels.
+	 * @param separators Separators
+	 */
+	private void cleanUpSeparators(List<Separator> separators)
+	{
+		//TODO takhle to nejde delat.. chce to neco obecneho
+		List<Separator> tempSeparators = new ArrayList<Separator>();
+		tempSeparators.addAll(separators);
+
+		for (Separator separator : tempSeparators)
+		{
+			int width = separator.endPoint - separator.startPoint;
+			if (width < 5)
+				separators.remove(separator);
+		}
 	}
 
 	/**
@@ -415,9 +474,9 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	{
 		List<VipsBlock> overlappedElements = new ArrayList<VipsBlock>();
 		if (horizontal)
-			findHorizontalOverlappedElements(separator, _vipsBlock, overlappedElements);
+			findHorizontalOverlappedElements(separator, _vipsBlocks, overlappedElements);
 		else
-			findVerticalOverlappedElements(separator, _vipsBlock, overlappedElements);
+			findVerticalOverlappedElements(separator, _vipsBlocks, overlappedElements);
 
 		if (overlappedElements.size() == 0)
 			return;
@@ -462,7 +521,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 			result.add(vipsBlock);
 		}
 
-		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
+		for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
 			findHorizontalOverlappedElements(separator, vipsBlockChild, result);
 	}
 
@@ -496,7 +555,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 			result.add(vipsBlock);
 		}
 
-		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
+		for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
 			findVerticalOverlappedElements(separator, vipsBlockChild, result);
 	}
 
@@ -512,9 +571,9 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 		// for vertical is represents elements on right side
 		List<VipsBlock> bottomAdjacentElements = new ArrayList<VipsBlock>();
 		if (horizontal)
-			findHorizontalAdjacentBlocks(separator, _vipsBlock, topAdjacentElements, bottomAdjacentElements);
+			findHorizontalAdjacentBlocks(separator, _vipsBlocks, topAdjacentElements, bottomAdjacentElements);
 		else
-			findVerticalAdjacentBlocks(separator, _vipsBlock, topAdjacentElements, bottomAdjacentElements);
+			findVerticalAdjacentBlocks(separator, _vipsBlocks, topAdjacentElements, bottomAdjacentElements);
 
 		if (topAdjacentElements.size() < 1 || bottomAdjacentElements.size() < 1)
 			return;
@@ -557,7 +616,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 			}
 		}
 
-		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
+		for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
 			findHorizontalAdjacentBlocks(separator, vipsBlockChild, resultTop, resultBottom);
 	}
 
@@ -588,7 +647,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 				resultLeft.add(0, vipsBlock);
 			}
 		}
-		for (VipsBlock vipsBlockChild : vipsBlock.getChilds())
+		for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
 			findVerticalAdjacentBlocks(separator, vipsBlockChild, resultLeft, resultRight);
 	}
 
@@ -606,7 +665,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 		List<VipsBlock> topAdjacentElements = new ArrayList<VipsBlock>();
 		List<VipsBlock> bottomAdjacentElements = new ArrayList<VipsBlock>();
 
-		findHorizontalAdjacentBlocks(separator, _vipsBlock, topAdjacentElements, bottomAdjacentElements);
+		findHorizontalAdjacentBlocks(separator, _vipsBlocks, topAdjacentElements, bottomAdjacentElements);
 
 		if (topAdjacentElements.size() < 1 || bottomAdjacentElements.size() < 1)
 			return;
@@ -660,7 +719,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 		List<VipsBlock> topAdjacentElements = new ArrayList<VipsBlock>();
 		List<VipsBlock> bottomAdjacentElements = new ArrayList<VipsBlock>();
 
-		findHorizontalAdjacentBlocks(separator, _vipsBlock, topAdjacentElements, bottomAdjacentElements);
+		findHorizontalAdjacentBlocks(separator, _vipsBlocks, topAdjacentElements, bottomAdjacentElements);
 
 		if (topAdjacentElements.size() < 1 || bottomAdjacentElements.size() < 1)
 			return;
@@ -688,10 +747,10 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	 * Saves everything (separators + block) to image.
 	 * @param vipsBlock Vips block
 	 */
-	public void exportAllToImage(VipsBlock vipsBlock)
+	public void exportAllToImage()
 	{
 		createPool();
-		fillPool(vipsBlock);
+		fillPool();
 		drawVerticalSeparators();
 		drawHorizontalSeparators();
 		saveToImage("all");
@@ -762,4 +821,21 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 			System.err.print(e.getStackTrace());
 		}
 	}
+
+	/**
+	 * @return the _horizontalSeparators
+	 */
+	public List<Separator> getHorizontalSeparators()
+	{
+		return _horizontalSeparators;
+	}
+
+	/**
+	 * @return the _verticalSeparators
+	 */
+	public List<Separator> getVerticalSeparators()
+	{
+		return _verticalSeparators;
+	}
+
 }

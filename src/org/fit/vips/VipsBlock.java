@@ -101,7 +101,7 @@ public class VipsBlock {
 			this._containImg++;
 		}
 
-		for (VipsBlock childVipsBlock : vipsBlock.getChilds())
+		for (VipsBlock childVipsBlock : vipsBlock.getChildren())
 			checkContainImg(childVipsBlock);
 	}
 
@@ -114,7 +114,7 @@ public class VipsBlock {
 		if (vipsBlock.getBox().getNode().getNodeName().equals("table"))
 			this._containTable = true;
 
-		for (VipsBlock childVipsBlock : vipsBlock.getChilds())
+		for (VipsBlock childVipsBlock : vipsBlock.getChildren())
 			checkContainTable(childVipsBlock);
 	}
 
@@ -127,7 +127,7 @@ public class VipsBlock {
 		if (vipsBlock.getBox().getNode().getNodeName().equals("p"))
 			this._containP++;
 
-		for (VipsBlock childVipsBlock : vipsBlock.getChilds())
+		for (VipsBlock childVipsBlock : vipsBlock.getChildren())
 			checkContainP(childVipsBlock);
 	}
 
@@ -145,7 +145,7 @@ public class VipsBlock {
 
 		}
 
-		for (VipsBlock childVipsBlock : vipsBlock.getChilds())
+		for (VipsBlock childVipsBlock : vipsBlock.getChildren())
 			countLinkTextLength(childVipsBlock);
 	}
 
@@ -164,7 +164,7 @@ public class VipsBlock {
 		_children.add(child);
 	}
 
-	public List<VipsBlock> getChilds()
+	public List<VipsBlock> getChildren()
 	{
 		return _children;
 	}
