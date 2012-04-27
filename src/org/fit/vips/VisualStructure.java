@@ -19,6 +19,12 @@ public class VisualStructure {
 	private int _height = 0;
 	private int _x = 0;
 	private int _y = 0;
+	private int _doC = -1;
+	private int _containImg = -1;
+	private int _containP = -1;
+	private int _textLength = -1;
+	private int _linkTextLength = -1;
+	private boolean _containTable = false;
 	private String _id = null;
 
 	public VisualStructure()
@@ -42,9 +48,19 @@ public class VisualStructure {
 		this._nestedBlocks.add(vipsBlock);
 	}
 
+	public void setNestedBlocks(List<VipsBlock> vipsBlocks)
+	{
+		this._nestedBlocks = vipsBlocks;
+	}
+
 	public void addChild(VisualStructure visualStructure)
 	{
 		this._childrenVisualStructures.add(visualStructure);
+	}
+
+	public void addChildAt(VisualStructure visualStructure, int index)
+	{
+		this._childrenVisualStructures.add(index, visualStructure);
 	}
 
 	/**
@@ -160,5 +176,130 @@ public class VisualStructure {
 	public String getId()
 	{
 		return this._id;
+	}
+
+	public void setDoC(int doC)
+	{
+		this._doC = doC;
+	}
+
+	public int getDoC()
+	{
+		if (_doC != -1)
+			return _doC;
+
+		_doC = 0;
+
+		for (Separator separator : _horizontalSeparators)
+		{
+			if (separator.weight > _doC)
+				_doC = separator.weight;
+		}
+
+		for (Separator separator : _verticalSeparators)
+		{
+			if (separator.weight > _doC)
+				_doC = separator.weight;
+		}
+
+		return _doC;
+	}
+
+	public int containImg()
+	{
+		if (_containImg != -1)
+			return _containImg;
+
+		_containImg = 0;
+
+		for (VipsBlock vipsBlock : _nestedBlocks)
+		{
+			_containImg += vipsBlock.containImg();
+		}
+
+		return _containImg;
+	}
+
+	public int containP()
+	{
+		if (_containP != -1)
+			return _containP;
+
+		_containP = 0;
+
+		for (VipsBlock vipsBlock : _nestedBlocks)
+		{
+			_containP += vipsBlock.containP();
+		}
+
+		return _containP;
+	}
+
+	public boolean containTable()
+	{
+		if (_containTable)
+			return _containTable;
+
+		for (VipsBlock vipsBlock : _nestedBlocks)
+		{
+			if (vipsBlock.containTable())
+			{
+				_containTable = true;
+				break;
+			}
+		}
+
+		return _containTable;
+	}
+
+	public boolean isImg()
+	{
+		if (_nestedBlocks.size() != 1)
+			return false;
+
+		return _nestedBlocks.get(0).isImg();
+	}
+
+	public int getTextLength()
+	{
+		if (_textLength != -1)
+			return _textLength;
+
+		_textLength = 0;
+		for (VipsBlock vipsBlock : _nestedBlocks)
+		{
+			_textLength += vipsBlock.getTextLength();
+		}
+
+		return _textLength;
+	}
+
+	public int getLinkTextLength()
+	{
+		if (_linkTextLength != -1)
+			return _linkTextLength;
+
+		_linkTextLength = 0;
+		for (VipsBlock vipsBlock : _nestedBlocks)
+		{
+			_linkTextLength += vipsBlock.getTextLength();
+		}
+
+		return _linkTextLength;
+	}
+
+	public int getFontSize()
+	{
+		return _nestedBlocks.get(0).getFontSize();
+	}
+
+	public String getFontWeight()
+	{
+		return _nestedBlocks.get(0).getFontWeight();
+	}
+
+	public String getBgColor()
+	{
+		return _nestedBlocks.get(0).getBgColor();
 	}
 }

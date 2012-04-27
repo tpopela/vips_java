@@ -991,9 +991,6 @@ public class VipsParser {
 		VipsBlock previousSiblingVipsBlock = null;
 		findPreviousSiblingNodeVipsBlock(node.getNode().getPreviousSibling(), _vipsBlocks, previousSiblingVipsBlock);
 
-		if (previousSiblingVipsBlock == null)
-			return false;
-
 		if (previousSiblingVipsBlock != null)
 			if (previousSiblingVipsBlock.isAlreadyDivided())
 				return true;

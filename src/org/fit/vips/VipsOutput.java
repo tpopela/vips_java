@@ -51,52 +51,53 @@ public final class VipsOutput {
 		return content;
 	}
 
-	private void writeVisualBlocks(Element parent, VipsBlock vipsBlock)
+	private void writeVisualBlocks(Element parentNode, VisualStructure visualStructure)
 	{
-		if (vipsBlock.isVisualBlock())
+		Element layoutNode = doc.createElement("LayoutNode");
+
+		layoutNode.setAttribute("FrameSourceIndex", "neznam");
+		layoutNode.setAttribute("SourceIndex", "neznam");
+		layoutNode.setAttribute("DoC", String.valueOf(visualStructure.getDoC()));
+		layoutNode.setAttribute("ContainImg", String.valueOf(visualStructure.containImg()));
+		layoutNode.setAttribute("IsImg", String.valueOf(visualStructure.isImg()));
+		layoutNode.setAttribute("ContainTable", String.valueOf(visualStructure.containTable()));
+		layoutNode.setAttribute("ContainP", String.valueOf(visualStructure.containP()));
+		layoutNode.setAttribute("TextLen", String.valueOf(visualStructure.getTextLength()));
+		layoutNode.setAttribute("LinkTextLen", String.valueOf(visualStructure.getLinkTextLength()));
+		layoutNode.setAttribute("DOMCldNum", "neznam");
+		layoutNode.setAttribute("FontSize", String.valueOf(visualStructure.getFontSize()));
+		layoutNode.setAttribute("FontWeight", String.valueOf(visualStructure.getFontWeight()));
+		layoutNode.setAttribute("BgColor", visualStructure.getBgColor());
+		layoutNode.setAttribute("ObjectRectLeft", String.valueOf(visualStructure.getX()));
+		layoutNode.setAttribute("ObjectRectTop", String.valueOf(visualStructure.getY()));
+		layoutNode.setAttribute("ObjectRectWidth", String.valueOf(visualStructure.getWidth()));
+		layoutNode.setAttribute("ObjectRectHeight", String.valueOf(visualStructure.getHeight()));
+		layoutNode.setAttribute("CID", visualStructure.getId());
+		layoutNode.setAttribute("order", "neznam");
+
+		// TODO disable character escaping - not working yet
+		// Node pi = doc.createProcessingInstruction(StreamResult.PI_DISABLE_OUTPUT_ESCAPING,"");
+		// vipsElement.appendChild(pi);
+		//<xsl:text disable-output-escaping="yes">
+		if (visualStructure.getChildrenVisualStructures().size() == 0)
 		{
-			Element layoutNode = doc.createElement("LayoutNode");
-			ElementBox elementBox = vipsBlock.getElementBox();
+			//TODO zjistit podle jake verze VIPS toto delat..
+			ElementBox elementBox = visualStructure.getNestedBlocks().get(0).getElementBox();
 
 			if (elementBox == null)
 				return;
 
-			layoutNode.setAttribute("FrameSourceIndex", "neznam");
-			layoutNode.setAttribute("SourceIndex", "neznam");
-			layoutNode.setAttribute("DoC", String.valueOf(vipsBlock.getDoC()));
-			layoutNode.setAttribute("ContainImg", String.valueOf(vipsBlock.containImg()));
-			layoutNode.setAttribute("IsImg", String.valueOf(vipsBlock.isImg()));
-			layoutNode.setAttribute("ContainTable", String.valueOf(vipsBlock.containTable()));
-			layoutNode.setAttribute("ContainP", String.valueOf(vipsBlock.containP()));
-			layoutNode.setAttribute("TextLen", String.valueOf(vipsBlock.getTextLength()));
-			layoutNode.setAttribute("LinkTextLen", String.valueOf(vipsBlock.getLinkTextLength()));
-			layoutNode.setAttribute("DOMCldNum", "neznam");
-			layoutNode.setAttribute("FontSize", String.valueOf(vipsBlock.getFontSize()));
-			layoutNode.setAttribute("FontWeight", vipsBlock.getFontWeight());
-			layoutNode.setAttribute("BgColor", vipsBlock.getBgColor());
-			//TODO overit tyto miry dole
-			layoutNode.setAttribute("ObjectRectLeft", String.valueOf(elementBox.getAbsoluteContentX()));
-			layoutNode.setAttribute("ObjectRectTop", String.valueOf(elementBox.getAbsoluteContentY()));
-			layoutNode.setAttribute("ObjectRectWidth", String.valueOf(elementBox.getContentWidth()));
-			layoutNode.setAttribute("ObjectRectHeight", String.valueOf(elementBox.getContentHeight()));
-			layoutNode.setAttribute("CID", "1-1");
-			layoutNode.setAttribute("order", String.valueOf(elementBox.getOrder()));
-
-			// TODO disable character escaping - not working yet
-			// Node pi = doc.createProcessingInstruction(StreamResult.PI_DISABLE_OUTPUT_ESCAPING,"");
-			// vipsElement.appendChild(pi);
-			//<xsl:text disable-output-escaping="yes">
 			layoutNode.setAttribute("SRC", getSource(elementBox.getElement()));
 			layoutNode.setAttribute("Content", elementBox.getNode().getTextContent());
-
-			parent.appendChild(layoutNode);
 		}
 
-		for (VipsBlock childVipsBlock : vipsBlock.getChildren())
-			writeVisualBlocks(parent, childVipsBlock);
+		parentNode.appendChild(layoutNode);
+
+		for (VisualStructure child : visualStructure.getChildrenVisualStructures())
+			writeVisualBlocks(layoutNode, child);
 	}
 
-	public void writeXML(VipsBlock vipsBlock, Viewport pageViewport)
+	public void writeXML(VisualStructure visualStructure, Viewport pageViewport)
 	{
 		try
 		{
@@ -112,7 +113,7 @@ public final class VipsOutput {
 			vipsElement.setAttribute("PageTitle", pageTitle);
 			vipsElement.setAttribute("WindowWidth", String.valueOf(pageViewport.getContentWidth()));
 			vipsElement.setAttribute("WindowHeight", String.valueOf(pageViewport.getContentHeight()));
-			vipsElement.setAttribute("PageRectTop", "neznam");
+			vipsElement.setAttribute("PageRectTop", String.valueOf(pageViewport.getContentY()));
 			vipsElement.setAttribute("PageRectWidth", String.valueOf(pageViewport.getContentWidth()));
 			vipsElement.setAttribute("PageRectHeight", String.valueOf(pageViewport.getContentHeight()));
 			vipsElement.setAttribute("neworder", "neznam");
@@ -120,7 +121,7 @@ public final class VipsOutput {
 
 			doc.appendChild(vipsElement);
 
-			writeVisualBlocks(vipsElement, vipsBlock);
+			writeVisualBlocks(vipsElement, visualStructure);
 
 			TransformerFactory transformerFactory = TransformerFactory.newInstance();
 			Transformer transformer = transformerFactory.newTransformer();

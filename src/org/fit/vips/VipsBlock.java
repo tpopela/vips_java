@@ -39,6 +39,8 @@ public class VipsBlock {
 	//if node can be divided
 	private boolean _isDividable = true;
 
+	private String _bgColor = null;
+
 	//length of text in node
 	private int _textLen = 0;
 	//length of text in links in node
@@ -276,7 +278,7 @@ public class VipsBlock {
 		return _containP;
 	}
 
-	private void findBgColor(Element element, String bgColor)
+	private void findBgColor(Element element)
 	{
 		String backgroundColor = element.getAttribute("background-color");
 
@@ -284,22 +286,31 @@ public class VipsBlock {
 		{
 			if (element.getParentNode() != null &&
 					!(element.getParentNode() instanceof org.apache.xerces.dom.DeferredDocumentImpl))
-				findBgColor((Element) element.getParentNode(), bgColor);
+				findBgColor((Element) element.getParentNode());
 			else
-				bgColor = "#ffffff";
+			{
+				_bgColor += "#ffffff";
+				return;
+			}
 		}
 		else
-			bgColor = backgroundColor;
+		{
+			_bgColor = backgroundColor;
+			return;
+		}
 	}
 
 	public String getBgColor()
 	{
-		String backgroundColor = this.getElementBox().getStylePropertyValue("background-color");
+		if (_bgColor != null)
+			return _bgColor;
 
-		if (backgroundColor.isEmpty())
-			findBgColor(this.getElementBox().getElement(), backgroundColor);
+		_bgColor = this.getElementBox().getStylePropertyValue("background-color");
 
-		return backgroundColor;
+		if (_bgColor.isEmpty())
+			findBgColor(this.getElementBox().getElement());
+
+		return _bgColor;
 	}
 
 	public int getFontSize()
@@ -316,6 +327,7 @@ public class VipsBlock {
 
 		fontWeight = this.getElementBox().getStylePropertyValue("font-weight");
 
+		// TODO font weight in numbers
 		if (fontWeight.isEmpty())
 			fontWeight = "normal";
 

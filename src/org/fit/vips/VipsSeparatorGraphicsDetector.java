@@ -134,7 +134,8 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	 */
 	public void setVisualBlocks(List<VipsBlock> visualBlocks)
 	{
-		this._visualBlocks = visualBlocks;
+		this._visualBlocks.clear();
+		this._visualBlocks.addAll(visualBlocks);
 	}
 
 	/**
@@ -399,24 +400,6 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	private void sortSeparatorsByWeight(List<Separator> separators)
 	{
 		Collections.sort(separators);
-	}
-
-	/**
-	 * Removes separator, that's width is smaller than 5 pixels.
-	 * @param separators Separators
-	 */
-	private void cleanUpSeparators(List<Separator> separators)
-	{
-		//TODO takhle to nejde delat.. chce to neco obecneho
-		List<Separator> tempSeparators = new ArrayList<Separator>();
-		tempSeparators.addAll(separators);
-
-		for (Separator separator : tempSeparators)
-		{
-			int width = separator.endPoint - separator.startPoint;
-			if (width < 5)
-				separators.remove(separator);
-		}
 	}
 
 	/**
