@@ -82,13 +82,21 @@ public final class VipsOutput {
 		if (visualStructure.getChildrenVisualStructures().size() == 0)
 		{
 			//TODO zjistit podle jake verze VIPS toto delat..
-			ElementBox elementBox = visualStructure.getNestedBlocks().get(0).getElementBox();
+			if (visualStructure.getNestedBlocks().size() > 0)
+			{
+				ElementBox elementBox = visualStructure.getNestedBlocks().get(0).getElementBox();
 
-			if (elementBox == null)
-				return;
+				if (elementBox == null)
+					return;
 
-			layoutNode.setAttribute("SRC", getSource(elementBox.getElement()));
-			layoutNode.setAttribute("Content", elementBox.getNode().getTextContent());
+				layoutNode.setAttribute("SRC", getSource(elementBox.getElement()));
+				layoutNode.setAttribute("Content", elementBox.getNode().getTextContent());
+			}
+			else
+			{
+				layoutNode.setAttribute("SRC", "neeeeeeeee");
+				layoutNode.setAttribute("Content", "takyneeeeee");
+			}
 		}
 
 		parentNode.appendChild(layoutNode);

@@ -115,6 +115,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	public void setVipsBlock(VipsBlock vipsBlock)
 	{
 		this._vipsBlocks = vipsBlock;
+		_visualBlocks.clear();
 		fillPoolWithBlocks(vipsBlock);
 		createPool();
 	}
@@ -359,8 +360,16 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 		findHorizontalSeparators();
 
 		//remove pool borders
-		_horizontalSeparators.remove(0);
-		_horizontalSeparators.remove(_horizontalSeparators.size()-1);
+		List<Separator> tempSeparators = new ArrayList<Separator>();
+		tempSeparators.addAll(_horizontalSeparators);
+
+		for (Separator separator : tempSeparators)
+		{
+			if (separator.startPoint == 0)
+				_horizontalSeparators.remove(separator);
+			if (separator.endPoint == _image.getHeight())
+				_horizontalSeparators.remove(separator);
+		}
 
 		//cleanUpSeparators(_horizontalSeparators);
 		computeHorizontalWeights();
@@ -385,8 +394,16 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 		findVerticalSeparators();
 
 		//remove pool borders
-		_verticalSeparators.remove(0);
-		_verticalSeparators.remove(_verticalSeparators.size()-1);
+		List<Separator> tempSeparators = new ArrayList<Separator>();
+		tempSeparators.addAll(_verticalSeparators);
+
+		for (Separator separator : tempSeparators)
+		{
+			if (separator.startPoint == 0)
+				_verticalSeparators.remove(separator);
+			if (separator.endPoint == _image.getWidth())
+				_verticalSeparators.remove(separator);
+		}
 
 		//cleanUpSeparators(_verticalSeparators);
 		computeVerticalWeights();

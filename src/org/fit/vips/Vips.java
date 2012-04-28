@@ -95,9 +95,23 @@ public class Vips {
 
 			// visual structure construction
 			VisualStructureConstructor constructor = new VisualStructureConstructor();
-			constructor.setVipsBlock(vipsBlocks);
+			constructor.setVipsBlocks(vipsBlocks);
 			constructor.setPageSize(pageWidth, pageHeight);
 			constructor.constructVisualStructure();
+
+			System.err.println();
+			System.err.println();
+			System.err.println();
+			System.err.println();
+
+			vipsParser.setSizeTresholdHeight(55);
+			vipsParser.setSizeTresholdWidth(55);
+			vipsParser.parse();
+
+			vipsBlocks = vipsParser.getVipsBlocks();
+			constructor.updateVipsBlocks(vipsBlocks);
+			constructor.constructVisualStructure();
+
 
 			VipsOutput vipsOutput = new VipsOutput();
 			vipsOutput.writeXML(constructor.getVisualStructure(), _viewport);

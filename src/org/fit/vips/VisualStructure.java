@@ -53,6 +53,16 @@ public class VisualStructure {
 		this._nestedBlocks = vipsBlocks;
 	}
 
+	public void clearNestedBlocks()
+	{
+		this._nestedBlocks.clear();
+	}
+
+	public void removeNestedBlockAt(int index)
+	{
+		this._nestedBlocks.remove(index);
+	}
+
 	public void addChild(VisualStructure visualStructure)
 	{
 		this._childrenVisualStructures.add(visualStructure);
@@ -290,16 +300,25 @@ public class VisualStructure {
 
 	public int getFontSize()
 	{
-		return _nestedBlocks.get(0).getFontSize();
+		if (_nestedBlocks.size() > 0)
+			return _nestedBlocks.get(0).getFontSize();
+		else
+			return -1;
 	}
 
 	public String getFontWeight()
 	{
-		return _nestedBlocks.get(0).getFontWeight();
+		if (_nestedBlocks.size() > 0)
+			return _nestedBlocks.get(0).getFontWeight();
+		else
+			return "undef";
 	}
 
 	public String getBgColor()
 	{
-		return _nestedBlocks.get(0).getBgColor();
+		if (_nestedBlocks.size() > 0)
+			return _nestedBlocks.get(0).getBgColor();
+		else
+			return "undef";
 	}
 }

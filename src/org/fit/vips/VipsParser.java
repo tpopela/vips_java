@@ -23,7 +23,7 @@ public class VipsParser {
 	private int _sizeTresholdWidth = 0;
 	private int _sizeTresholdHeight = 0;
 	private Viewport _viewport = null;
-	private int visualBlockCount = 0;
+	private int _visualBlocksCount = 0;
 
 	/**
 	 * Default constructor
@@ -57,10 +57,14 @@ public class VipsParser {
 	{
 		if (_viewport != null)
 		{
+			this._vipsBlocks = new VipsBlock();
+			_visualBlocksCount = 0;
+
 			constructVipsBlockTree(_viewport.getElementBoxByName("body", false), _vipsBlocks);
 			divideVipsBlockTree(_vipsBlocks);
-			getVisualBlockCount(_vipsBlocks);
-			System.err.println(String.valueOf(visualBlockCount));
+
+			getVisualBlocksCount(_vipsBlocks);
+			System.err.println(String.valueOf(_visualBlocksCount));
 		}
 		else
 			System.err.print("Page's ViewPort is not defined");
@@ -70,15 +74,15 @@ public class VipsParser {
 	 * Counts number of visual blocks in visual structure
 	 * @param vipsBlock Visual structure
 	 */
-	private void getVisualBlockCount(VipsBlock vipsBlock)
+	private void getVisualBlocksCount(VipsBlock vipsBlock)
 	{
 		if (vipsBlock.isVisualBlock())
-			visualBlockCount++;
+			_visualBlocksCount++;
 
 		for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
 		{
 			if (!(vipsBlockChild.getBox() instanceof TextBox))
-				getVisualBlockCount(vipsBlockChild);
+				getVisualBlocksCount(vipsBlockChild);
 		}
 	}
 
