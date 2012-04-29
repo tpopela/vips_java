@@ -71,7 +71,6 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 		g.drawImage(_image, 0, 0, null);
 	}
 
-
 	private void fillPoolWithBlocks(VipsBlock vipsBlock)
 	{
 		if (vipsBlock.isVisualBlock())
@@ -818,7 +817,8 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 			ImageIO.write(_image, "png", new File(filename));
 		} catch (Exception e)
 		{
-			System.err.print(e.getStackTrace());
+			System.err.println("Error: " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 

@@ -92,7 +92,7 @@ public class VisualStructureConstructor {
 		for (VisualStructure childVisualStructure : results)
 		{
 			//detect vertical separators for each horizontal block
-			VipsSeparatorGraphicsDetector detector = new VipsSeparatorGraphicsDetector(childVisualStructure.getWidth(), childVisualStructure.getHeight());
+			VipsSeparatorGraphicsDetector detector = new VipsSeparatorGraphicsDetector(_pageWidth, _pageHeight);
 			detector.setVipsBlock(_vipsBlocks);
 			detector.setVisualBlocks(childVisualStructure.getNestedBlocks());
 			detector.detectVerticalSeparators();
@@ -399,18 +399,6 @@ public class VisualStructureConstructor {
 					if (visualBlock.getBox().getAbsoluteContentY() >= visualStructure.getY() &&
 							visualBlock.getBox().getAbsoluteContentY() <= (visualStructure.getY() + visualStructure.getHeight()))
 					{
-						/*
-						// sirka noveho bloku je mensi nez sirka puvodniho => puvodni blok byl rozdelen
-						if (visualBlock.getBox().getContentWidth() < visualStructure.getWidth())
-						{
-							visualStructure.addNestedBlock(visualBlock);
-						}
-						// vyska noveho bloku je mensi nez vyska puvodniho => puvodni blok byl rozdelen
-						if (visualBlock.getBox().getContentHeight() < visualStructure.getHeight())
-						{
-							visualStructure.addNestedBlock(visualBlock);
-						}
-						 */
 						visualStructure.addNestedBlock(visualBlock);
 					}
 
