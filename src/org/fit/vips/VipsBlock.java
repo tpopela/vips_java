@@ -12,6 +12,7 @@ import java.util.List;
 import org.fit.cssbox.layout.Box;
 import org.fit.cssbox.layout.ElementBox;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 public class VipsBlock {
 
@@ -40,6 +41,12 @@ public class VipsBlock {
 	private boolean _isDividable = true;
 
 	private String _bgColor = null;
+
+	private final int _frameSourceIndex = 0;
+	private int _sourceIndex = 0;
+	private int _tmpSrcIndex = 0;
+	private final int _order = 0;
+
 
 	//length of text in node
 	private int _textLen = 0;
@@ -76,8 +83,11 @@ public class VipsBlock {
 		checkContainImg(this);
 		checkContainTable(this);
 		checkContainP(this);
+		_linkTextLen = 0;
+		_textLen = 0;
 		countTextLength(this);
 		countLinkTextLength(this);
+		setSourceIndex(this.getBox().getNode().getOwnerDocument());
 	}
 
 	/**
@@ -141,9 +151,7 @@ public class VipsBlock {
 	{
 		if (vipsBlock.getBox().getNode().getNodeName().equals("a"))
 		{
-			int linkLength = vipsBlock.getBox().getNode().getTextContent().length();
-			System.err.println(_linkTextLen + " + " + linkLength + "  " + vipsBlock.getBox().getNode().getTextContent());
-			_linkTextLen += linkLength;
+			_linkTextLen += vipsBlock.getBox().getText().length();
 
 		}
 
@@ -157,8 +165,7 @@ public class VipsBlock {
 	 */
 	private void countTextLength(VipsBlock vipsBlock)
 	{
-		// TODO V ceske verzi www.fit.vutbr.cz je v orginalnim VIPS delka 3802, u me 3810
-		_textLen = vipsBlock.getBox().getNode().getTextContent().replaceAll("\n", "").length();
+		_textLen = vipsBlock.getBox().getText().replaceAll("\n", "").length();
 	}
 
 	public void addChild(VipsBlock child)
@@ -289,7 +296,7 @@ public class VipsBlock {
 				findBgColor((Element) element.getParentNode());
 			else
 			{
-				_bgColor += "#ffffff";
+				_bgColor = "#ffffff";
 				return;
 			}
 		}
@@ -333,4 +340,33 @@ public class VipsBlock {
 
 		return fontWeight;
 	}
+
+	public int getFrameSourceIndex()
+	{
+		return _frameSourceIndex;
+	}
+
+	private void setSourceIndex(Node node)
+	{
+		if (!this.getBox().getNode().equals(node))
+			_tmpSrcIndex++;
+		else
+			_sourceIndex = _tmpSrcIndex;
+
+		for (int i = 0; i < node.getChildNodes().getLength(); i++)
+		{
+			setSourceIndex(node.getChildNodes().item(i));
+		}
+	}
+
+	public int getSourceIndex()
+	{
+		return _sourceIndex;
+	}
+
+	public int getOrder()
+	{
+		return _order;
+	}
+
 }

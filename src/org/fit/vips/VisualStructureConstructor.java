@@ -19,6 +19,8 @@ public class VisualStructureConstructor {
 	private int _pageWidth = 0;
 	private int _pageHeight = 0;
 	int _level = 0;
+	private int _srcOrder = 1;
+
 
 	public VisualStructureConstructor()
 	{
@@ -58,8 +60,10 @@ public class VisualStructureConstructor {
 			VipsSeparatorGraphicsDetector detector = new VipsSeparatorGraphicsDetector(_pageWidth, _pageHeight);
 			detector.setVipsBlock(_vipsBlocks);
 			detector.setVisualBlocks(_visualBlocks);
+			detector.setCleanUpSeparators(true);
 			detector.detectHorizontalSeparators();
 			this._horizontalSeparators = detector.getHorizontalSeparators();
+			detector.setCleanUpSeparators(false);
 
 			_visualStructure = new VisualStructure();
 			_visualStructure.setId("1");
@@ -100,6 +104,9 @@ public class VisualStructureConstructor {
 			constructWithVerticalSeparators(childVisualStructure);
 		}
 		_level++;
+
+		_srcOrder = 1;
+		setOrder(_visualStructure);
 	}
 
 	private void constructWithHorizontalSeparators(VisualStructure actualStructure)
@@ -405,5 +412,14 @@ public class VisualStructureConstructor {
 				}
 			}
 		}
+	}
+
+	private void setOrder(VisualStructure visualStructure)
+	{
+		visualStructure.setOrder(_srcOrder);
+		_srcOrder++;
+
+		for (VisualStructure child : visualStructure.getChildrenVisualStructures())
+			setOrder(child);
 	}
 }

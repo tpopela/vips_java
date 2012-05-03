@@ -24,6 +24,7 @@ public class VisualStructure {
 	private int _containP = -1;
 	private int _textLength = -1;
 	private int _linkTextLength = -1;
+	private int _order;
 	private boolean _containTable = false;
 	private String _id = null;
 
@@ -289,10 +290,11 @@ public class VisualStructure {
 		if (_linkTextLength != -1)
 			return _linkTextLength;
 
+
 		_linkTextLength = 0;
 		for (VipsBlock vipsBlock : _nestedBlocks)
 		{
-			_linkTextLength += vipsBlock.getTextLength();
+			_linkTextLength += vipsBlock.getLinkTextLength();
 		}
 
 		return _linkTextLength;
@@ -321,4 +323,31 @@ public class VisualStructure {
 		else
 			return "undef";
 	}
+
+	public int getFrameSourceIndex()
+	{
+		if (_nestedBlocks.size() > 0)
+			return _nestedBlocks.get(0).getFrameSourceIndex();
+		else
+			return -1;
+	}
+
+	public int getSourceIndex()
+	{
+		if (_nestedBlocks.size() > 0)
+			return _nestedBlocks.get(0).getSourceIndex();
+		else
+			return -1;
+	}
+
+	public void setOrder(int order)
+	{
+		this._order = order;
+	}
+
+	public int getOrder()
+	{
+		return _order;
+	}
+
 }

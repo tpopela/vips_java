@@ -85,6 +85,7 @@ public class Vips {
 			VipsSeparatorGraphicsDetector detector = new VipsSeparatorGraphicsDetector(
 					pageWidth, pageHeight);
 			detector.setVipsBlock(vipsBlocks);
+			detector.setCleanUpSeparators(true);
 			detector.fillPool();
 			detector.saveToImage("pool");
 			detector.detectHorizontalSeparators();

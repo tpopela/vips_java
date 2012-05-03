@@ -11,10 +11,8 @@ import java.io.StringWriter;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -55,8 +53,8 @@ public final class VipsOutput {
 	{
 		Element layoutNode = doc.createElement("LayoutNode");
 
-		layoutNode.setAttribute("FrameSourceIndex", "neznam");
-		layoutNode.setAttribute("SourceIndex", "neznam");
+		layoutNode.setAttribute("FrameSourceIndex", String.valueOf(visualStructure.getFrameSourceIndex()));
+		layoutNode.setAttribute("SourceIndex", String.valueOf(visualStructure.getSourceIndex()));
 		layoutNode.setAttribute("DoC", String.valueOf(visualStructure.getDoC()));
 		layoutNode.setAttribute("ContainImg", String.valueOf(visualStructure.containImg()));
 		layoutNode.setAttribute("IsImg", String.valueOf(visualStructure.isImg()));
@@ -73,7 +71,8 @@ public final class VipsOutput {
 		layoutNode.setAttribute("ObjectRectWidth", String.valueOf(visualStructure.getWidth()));
 		layoutNode.setAttribute("ObjectRectHeight", String.valueOf(visualStructure.getHeight()));
 		layoutNode.setAttribute("CID", visualStructure.getId());
-		layoutNode.setAttribute("order", "neznam");
+		//right order pruchod stromem a prirazeni order
+		layoutNode.setAttribute("order", String.valueOf(visualStructure.getOrder()));
 
 		// TODO disable character escaping - not working yet
 		// Node pi = doc.createProcessingInstruction(StreamResult.PI_DISABLE_OUTPUT_ESCAPING,"");
@@ -81,21 +80,28 @@ public final class VipsOutput {
 		//<xsl:text disable-output-escaping="yes">
 		if (visualStructure.getChildrenVisualStructures().size() == 0)
 		{
-			//TODO zjistit podle jake verze VIPS toto delat..
 			if (visualStructure.getNestedBlocks().size() > 0)
 			{
-				ElementBox elementBox = visualStructure.getNestedBlocks().get(0).getElementBox();
+				String src = "";
+				String content = "";
+				for (VipsBlock block : visualStructure.getNestedBlocks())
+				{
+					ElementBox elementBox = block.getElementBox();
 
-				if (elementBox == null)
-					return;
+					if (elementBox == null)
+						continue;
 
-				layoutNode.setAttribute("SRC", getSource(elementBox.getElement()));
-				layoutNode.setAttribute("Content", elementBox.getNode().getTextContent());
-			}
-			else
-			{
-				layoutNode.setAttribute("SRC", "neeeeeeeee");
-				layoutNode.setAttribute("Content", "takyneeeeee");
+					if (!elementBox.getNode().getNodeName().equals("Xdiv") &&
+							!elementBox.getNode().getNodeName().equals("Xspan"))
+						src += getSource(elementBox.getElement());
+					else
+						src += elementBox.getText();
+
+					content += elementBox.getText();
+
+				}
+				layoutNode.setAttribute("SRC", src);
+				layoutNode.setAttribute("Content", content);
 			}
 		}
 
@@ -135,27 +141,16 @@ public final class VipsOutput {
 			Transformer transformer = transformerFactory.newTransformer();
 			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-			//transformer.setOutputProperty(Result.PI_DISABLE_OUTPUT_ESCAPING, "yes");
 			DOMSource source = new DOMSource(doc);
 
 			StreamResult result = new StreamResult(new File("VIPSResult.xml"));
 
 			transformer.transform(source, result);
 		}
-		catch (ParserConfigurationException e)
-		{
-			System.err.println("Error: " + e.getMessage());
-			e.printStackTrace();
-		} catch (TransformerConfigurationException e)
-		{
-			System.err.println("Error: " + e.getMessage());
-			e.printStackTrace();
-		} catch (TransformerException e)
+		catch (Exception e)
 		{
 			System.err.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		}
-
-
 	}
 }

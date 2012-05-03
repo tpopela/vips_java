@@ -30,6 +30,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	BufferedImage _image = null;
 	VipsBlock _vipsBlocks = null;
 	List<VipsBlock> _visualBlocks = null;
+	private boolean _cleanSeparators = false;
 	private List<Separator> _horizontalSeparators = null;
 	private List<Separator> _verticalSeparators = null;
 
@@ -199,7 +200,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 					if (blockEnd < separator.startPoint)
 						break;
 					// if separator starts in the middle of block
-					if (blockStart < separator.startPoint && blockEnd > separator.startPoint)
+					if (blockStart < separator.startPoint && blockEnd >= separator.startPoint)
 					{
 						// change separator start's point coordinate
 						separator.startPoint = blockEnd+1;
@@ -296,7 +297,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 					if (blockEnd < separator.startPoint)
 						break;
 					// if separator starts in the middle of block
-					if (blockStart <= separator.startPoint && blockEnd > separator.startPoint)
+					if (blockStart <= separator.startPoint && blockEnd >= separator.startPoint)
 					{
 						// change separator start's point coordinate
 						separator.startPoint = blockEnd+1;
@@ -370,7 +371,8 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 				_horizontalSeparators.remove(separator);
 		}
 
-		//cleanUpSeparators(_horizontalSeparators);
+		if (_cleanSeparators)
+			cleanUpSeparators(_horizontalSeparators);
 		computeHorizontalWeights();
 		sortSeparatorsByWeight(_horizontalSeparators);
 	}
@@ -404,9 +406,25 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 				_verticalSeparators.remove(separator);
 		}
 
-		//cleanUpSeparators(_verticalSeparators);
+		if (_cleanSeparators)
+			cleanUpSeparators(_verticalSeparators);
 		computeVerticalWeights();
 		sortSeparatorsByWeight(_verticalSeparators);
+	}
+
+	private void cleanUpSeparators(List<Separator> separators)
+	{
+		List<Separator> tempList = new ArrayList<>();
+		tempList.addAll(separators);
+
+		for (Separator separator : tempList)
+		{
+			int width = separator.endPoint - separator.startPoint;
+
+			if (width < 10)
+				separators.remove(separator);
+		}
+
 	}
 
 	/**
@@ -449,19 +467,19 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 	/**
 	 * The greater the distance between blocks on different
 	 * side of the separator, the higher the weight. <p>
-	 * For every 5 points of width we increase weight by 2 points.
+	 * For every 10 points of width we increase weight by 1 points.
 	 * @param separator Separator
 	 */
 	private void ruleOne(Separator separator)
 	{
 		int width = separator.endPoint - separator.startPoint;
 		int weight = 0;
-		if (width < 5)
+		if (width < 10)
 			weight = 1;
 		else
-			weight = (width / 5);
+			weight = (width / 10);
 
-		separator.weight += weight * 2;
+		separator.weight += weight;
 	}
 
 	/**
@@ -838,4 +856,13 @@ public class VipsSeparatorGraphicsDetector extends JPanel {
 		return _verticalSeparators;
 	}
 
+	public void setCleanUpSeparators(boolean cleanSeparators)
+	{
+		this._cleanSeparators = cleanSeparators;
+	}
+
+	public boolean isCleanUpEnabled()
+	{
+		return _cleanSeparators;
+	}
 }
