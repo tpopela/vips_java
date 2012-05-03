@@ -62,7 +62,7 @@ public final class VipsOutput {
 		layoutNode.setAttribute("ContainP", String.valueOf(visualStructure.containP()));
 		layoutNode.setAttribute("TextLen", String.valueOf(visualStructure.getTextLength()));
 		layoutNode.setAttribute("LinkTextLen", String.valueOf(visualStructure.getLinkTextLength()));
-		layoutNode.setAttribute("DOMCldNum", "neznam");
+		layoutNode.setAttribute("DOMCldNum", String.valueOf(visualStructure.getChildrenVisualStructures().size()));
 		layoutNode.setAttribute("FontSize", String.valueOf(visualStructure.getFontSize()));
 		layoutNode.setAttribute("FontWeight", String.valueOf(visualStructure.getFontWeight()));
 		layoutNode.setAttribute("BgColor", visualStructure.getBgColor());
@@ -130,7 +130,7 @@ public final class VipsOutput {
 			vipsElement.setAttribute("PageRectTop", String.valueOf(pageViewport.getContentY()));
 			vipsElement.setAttribute("PageRectWidth", String.valueOf(pageViewport.getContentWidth()));
 			vipsElement.setAttribute("PageRectHeight", String.valueOf(pageViewport.getContentHeight()));
-			vipsElement.setAttribute("neworder", "neznam");
+			vipsElement.setAttribute("neworder", "0");
 			vipsElement.setAttribute("order", String.valueOf(pageViewport.getOrder()));
 
 			doc.appendChild(vipsElement);
