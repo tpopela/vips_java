@@ -1,7 +1,7 @@
 /*
  * Tomas Popela, xpopel11, 2012
  * VIPS - Visual Internet Page Segmentation
- * Module - VipsSeparatorDetector.java
+ * Module - VipsSeparatorNonGraphicsDetector.java
  */
 
 package org.fit.vips;

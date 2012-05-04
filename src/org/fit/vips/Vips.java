@@ -159,6 +159,5 @@ public class Vips {
 			System.err.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		}
-
 	}
 }
