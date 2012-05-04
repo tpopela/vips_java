@@ -1,37 +1,25 @@
 /*
  * Tomas Popela, xpopel11, 2012
  * VIPS - Visual Internet Page Segmentation
- * Module - VipsSeparatorGraphicsDetector.java
+ * Module - VipsSeparatorDetector.java
  */
 
 package org.fit.vips;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.imageio.ImageIO;
-import javax.swing.JPanel;
-
-import org.fit.cssbox.layout.Box;
 import org.fit.cssbox.layout.TextBox;
 
-public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparatorDetector {
+public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 
-	private static final long serialVersionUID = 5825509847374498L;
-
-	Graphics2D _pool = null;
-	BufferedImage _image = null;
 	VipsBlock _vipsBlocks = null;
 	List<VipsBlock> _visualBlocks = null;
 	private List<Separator> _horizontalSeparators = null;
 	private List<Separator> _verticalSeparators = null;
+	int _width = 0;
+	int _height = 0;
 
 	private boolean _cleanSeparators = false;
 
@@ -40,44 +28,18 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	 * @param width Pools width
 	 * @param height Pools height
 	 */
-	public VipsSeparatorGraphicsDetector(int width, int height) {
-		this._image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
+	public VipsSeparatorNonGraphicsDetector(int width, int height) {
+		this._width = width;
+		this._height = height;
 		this._horizontalSeparators = new ArrayList<Separator>();
 		this._verticalSeparators = new ArrayList<Separator>();
 		this._visualBlocks = new ArrayList<VipsBlock>();
-		createPool();
-	}
-
-	/**
-	 * Adds visual block to pool.
-	 * 
-	 * @param vipsBlock
-	 *            Visual block
-	 */
-	public void addVisualBlock(VipsBlock vipsBlock)
-	{
-		Box elementBox = vipsBlock.getBox();
-
-		Rectangle rect = new Rectangle(elementBox.getAbsoluteContentX(),
-				elementBox.getAbsoluteContentY(), elementBox.getContentWidth(),
-				elementBox.getContentHeight());
-
-		_pool.draw(rect);
-		_pool.fill(rect);
-	}
-
-	@Override
-	public void paintComponent(Graphics g)
-	{
-		super.paintComponent(g);
-		g.drawImage(_image, 0, 0, null);
 	}
 
 	private void fillPoolWithBlocks(VipsBlock vipsBlock)
 	{
 		if (vipsBlock.isVisualBlock())
 		{
-			addVisualBlock(vipsBlock);
 			_visualBlocks.add(vipsBlock);
 		}
 
@@ -98,19 +60,6 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	}
 
 	/**
-	 * Creates pool
-	 */
-	private void createPool()
-	{
-		// set black as pool background color
-		_pool = _image.createGraphics();
-		_pool.setColor(Color.white);
-		_pool.fillRect(0, 0, _image.getWidth(), _image.getHeight());
-		// set drawing color back to white
-		_pool.setColor(Color.black);
-	}
-
-	/**
 	 * Sets VIPS block, that will be used for separators computing.
 	 * @param vipsBlock Visual structure
 	 */
@@ -120,7 +69,6 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 		this._vipsBlocks = vipsBlock;
 		_visualBlocks.clear();
 		fillPoolWithBlocks(vipsBlock);
-		createPool();
 	}
 
 	/**
@@ -162,9 +110,6 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	{
 		for (VipsBlock vipsBlock : _visualBlocks)
 		{
-			// add new visual block to pool
-			addVisualBlock(vipsBlock);
-
 			// block vertical coordinates
 			int blockStart = vipsBlock.getBox().getAbsoluteContentX();
 			int blockEnd = blockStart + vipsBlock.getBox().getContentWidth();
@@ -259,9 +204,6 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	{
 		for (VipsBlock vipsBlock : _visualBlocks)
 		{
-			// add new visual block to pool
-			addVisualBlock(vipsBlock);
-
 			// block vertical coordinates
 			int blockStart = vipsBlock.getBox().getAbsoluteContentY();
 			int blockEnd = blockStart + vipsBlock.getBox().getContentHeight();
@@ -360,9 +302,8 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 			return;
 		}
 
-		createPool();
 		_horizontalSeparators.clear();
-		_horizontalSeparators.add(new Separator(0, _image.getHeight()));
+		_horizontalSeparators.add(new Separator(0, _height));
 
 		findHorizontalSeparators();
 
@@ -374,7 +315,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 		{
 			if (separator.startPoint == 0)
 				_horizontalSeparators.remove(separator);
-			if (separator.endPoint == _image.getHeight())
+			if (separator.endPoint == _height)
 				_horizontalSeparators.remove(separator);
 		}
 
@@ -396,9 +337,8 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 			return;
 		}
 
-		createPool();
 		_verticalSeparators.clear();
-		_verticalSeparators.add(new Separator(0, _image.getWidth()));
+		_verticalSeparators.add(new Separator(0, _width));
 
 		findVerticalSeparators();
 
@@ -410,7 +350,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 		{
 			if (separator.startPoint == 0)
 				_verticalSeparators.remove(separator);
-			if (separator.endPoint == _image.getWidth())
+			if (separator.endPoint == _width)
 				_verticalSeparators.remove(separator);
 		}
 
@@ -765,106 +705,6 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 			}
 			if (weightDecreased)
 				break;
-		}
-	}
-
-	/**
-	 * Saves everything (separators + block) to image.
-	 * @param vipsBlock Vips block
-	 */
-	public void exportAllToImage()
-	{
-		createPool();
-		fillPool();
-		drawVerticalSeparators();
-		drawHorizontalSeparators();
-		saveToImage("all");
-	}
-
-	/**
-	 * Adds all detected vertical separators to pool
-	 */
-	private void drawVerticalSeparators()
-	{
-		_pool.setColor(Color.red);
-		for (Separator separator : _verticalSeparators)
-		{
-			Rectangle rect = new Rectangle(separator.startPoint,
-					0, separator.endPoint - separator.startPoint,
-					_image.getHeight());
-			_pool.draw(rect);
-			_pool.fill(rect);
-		}
-	}
-
-	/**
-	 * Saves vertical separators to image.
-	 */
-	public void exportVerticalSeparatorsToImage()
-	{
-		createPool();
-		drawVerticalSeparators();
-		saveToImage("verticalSeparators");
-	}
-
-	/**
-	 * Saves vertical separators to image.
-	 */
-	public void exportVerticalSeparatorsToImage(int suffix)
-	{
-		createPool();
-		drawVerticalSeparators();
-		saveToImage("verticalSeparators" + suffix);
-	}
-
-	/**
-	 * Adds all detected horizontal separators to pool
-	 */
-	private void drawHorizontalSeparators()
-	{
-		_pool.setColor(Color.blue);
-		for (Separator separator : _horizontalSeparators)
-		{
-			Rectangle rect = new Rectangle(0,
-					separator.startPoint, _image.getWidth(),
-					separator.endPoint - separator.startPoint);
-			_pool.draw(rect);
-			_pool.fill(rect);
-		}
-	}
-
-	/**
-	 * Saves horizontal separators to image.
-	 */
-	public void exportHorizontalSeparatorsToImage()
-	{
-		createPool();
-		drawHorizontalSeparators();
-		saveToImage("horizontalSeparators");
-	}
-
-	/**
-	 * Saves horizontal separators to image.
-	 */
-	public void exportHorizontalSeparatorsToImage(int suffix)
-	{
-		createPool();
-		drawHorizontalSeparators();
-		saveToImage("horizontalSeparators" + suffix);
-	}
-
-	/**
-	 * Saves pool to image
-	 */
-	public void saveToImage(String filename)
-	{
-		try
-		{
-			ImageIO.write(_image, "png", new File(filename));
-		} catch (Exception e)
-		{
-			System.err.println("Error: " + e.getMessage());
-			e.printStackTrace();
 		}
 	}
 

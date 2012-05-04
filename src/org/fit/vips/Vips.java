@@ -74,47 +74,82 @@ public class Vips {
 			getDomTree(urlStream);
 			getViewport();
 
+			int numberOfIterations = 2;
 			int pageWidth = _viewport.getWidth();
 			int pageHeight = _viewport.getHeight();
+			int sizeTresholdWidth = 80;
+			int sizeTresholdHeight = 80;
+
+			boolean graphicsOutput = true;
 
 			VipsParser vipsParser = new VipsParser(_viewport);
-			vipsParser.parse();
-			VipsBlock vipsBlocks = vipsParser.getVipsBlocks();
-
-			// export separators and visual blocks to images
 			VipsSeparatorGraphicsDetector detector = new VipsSeparatorGraphicsDetector(
 					pageWidth, pageHeight);
-			detector.setVipsBlock(vipsBlocks);
-			detector.setCleanUpSeparators(true);
-			detector.fillPool();
-			detector.saveToImage("pool");
-			detector.detectHorizontalSeparators();
-			detector.detectVerticalSeparators();
-			detector.exportHorizontalSeparatorsToImage();
-			detector.exportVerticalSeparatorsToImage();
-			detector.exportAllToImage();
-
-			// visual structure construction
 			VisualStructureConstructor constructor = new VisualStructureConstructor();
-			constructor.setVipsBlocks(vipsBlocks);
-			constructor.setPageSize(pageWidth, pageHeight);
-			constructor.constructVisualStructure();
+			constructor.setGraphicsOutput(graphicsOutput);
 
-			System.err.println();
-			System.err.println();
-			System.err.println();
-			System.err.println();
+			for (int i = 1; i < numberOfIterations+1; i++)
+			{
+				System.err.println();
+				System.err.println();
+				System.err.println("Beginning of iteration number " + i);
+				System.err.println();
+				System.err.println();
 
-			vipsParser.setSizeTresholdHeight(55);
-			vipsParser.setSizeTresholdWidth(55);
-			vipsParser.parse();
+				//visual blocks detection
+				vipsParser.setSizeTresholdHeight(sizeTresholdHeight);
+				vipsParser.setSizeTresholdWidth(sizeTresholdWidth);
+				vipsParser.parse();
+				VipsBlock vipsBlocks = vipsParser.getVipsBlocks();
 
-			vipsBlocks = vipsParser.getVipsBlocks();
-			constructor.updateVipsBlocks(vipsBlocks);
-			constructor.constructVisualStructure();
+				detector.setVipsBlock(vipsBlocks);
 
+				if (graphicsOutput)
+				{
+					//visual separators detection
+					detector.fillPool();
+					detector.saveToImage("pool" + i);
+				}
+
+				if (i == 1)
+				{
+					if (graphicsOutput)
+					{
+						// in first round we'll export global separators
+						detector.setCleanUpSeparators(true);
+						detector.detectHorizontalSeparators();
+						detector.detectVerticalSeparators();
+						detector.exportHorizontalSeparatorsToImage();
+						detector.exportVerticalSeparatorsToImage();
+						detector.exportAllToImage();
+					}
+
+					// visual structure construction
+					constructor.setVipsBlocks(vipsBlocks);
+					constructor.setPageSize(pageWidth, pageHeight);
+				}
+				else
+				{
+					vipsBlocks = vipsParser.getVipsBlocks();
+					constructor.updateVipsBlocks(vipsBlocks);
+				}
+
+				// visual structure construction
+				constructor.constructVisualStructure();
+
+				sizeTresholdHeight -= 25;
+				sizeTresholdWidth -= 25;
+
+				System.err.println();
+				System.err.println();
+				System.err.println("End of iteration number " + i);
+				System.err.println();
+				System.err.println();
+
+			}
 
 			VipsOutput vipsOutput = new VipsOutput();
+			vipsOutput.setEscapeOutput(true);
 			vipsOutput.writeXML(constructor.getVisualStructure(), _viewport);
 
 			urlStream.close();

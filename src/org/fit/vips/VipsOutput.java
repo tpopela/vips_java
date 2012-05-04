@@ -7,6 +7,7 @@
 package org.fit.vips;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.StringWriter;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -26,6 +27,7 @@ import org.w3c.dom.Element;
 public final class VipsOutput {
 
 	private Document doc = null;
+	private boolean escapeOutput = true;
 
 	public VipsOutput() {
 
@@ -71,13 +73,8 @@ public final class VipsOutput {
 		layoutNode.setAttribute("ObjectRectWidth", String.valueOf(visualStructure.getWidth()));
 		layoutNode.setAttribute("ObjectRectHeight", String.valueOf(visualStructure.getHeight()));
 		layoutNode.setAttribute("CID", visualStructure.getId());
-		//right order pruchod stromem a prirazeni order
 		layoutNode.setAttribute("order", String.valueOf(visualStructure.getOrder()));
 
-		// TODO disable character escaping - not working yet
-		// Node pi = doc.createProcessingInstruction(StreamResult.PI_DISABLE_OUTPUT_ESCAPING,"");
-		// vipsElement.appendChild(pi);
-		//<xsl:text disable-output-escaping="yes">
 		if (visualStructure.getChildrenVisualStructures().size() == 0)
 		{
 			if (visualStructure.getNestedBlocks().size() > 0)
@@ -143,14 +140,35 @@ public final class VipsOutput {
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			DOMSource source = new DOMSource(doc);
 
-			StreamResult result = new StreamResult(new File("VIPSResult.xml"));
 
-			transformer.transform(source, result);
+			if (escapeOutput)
+			{
+				StreamResult result = new StreamResult(new File("VIPSResult.xml"));
+				transformer.transform(source, result);
+			}
+			else
+			{
+				StringWriter writer = new StringWriter();
+				transformer.transform(source, new StreamResult(writer));
+				String result = writer.toString();
+
+				result = result.replaceAll("&gt;", "<");
+				result = result.replaceAll("&lt;", ">");
+				result = result.replaceAll("&quot;", "\"");
+
+				FileWriter fstream = new FileWriter("VIPSResult.xml");
+				fstream.write(result);
+			}
 		}
 		catch (Exception e)
 		{
 			System.err.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		}
+	}
+
+	public void setEscapeOutput(boolean value)
+	{
+		escapeOutput = value;
 	}
 }
