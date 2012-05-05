@@ -137,8 +137,9 @@ public class Vips {
 				// visual structure construction
 				constructor.constructVisualStructure();
 
-				sizeTresholdHeight -= 25;
-				sizeTresholdWidth -= 25;
+				// 65 seznam.cz
+				sizeTresholdHeight -= 65;
+				sizeTresholdWidth -= 65;
 
 				System.err.println();
 				System.err.println();

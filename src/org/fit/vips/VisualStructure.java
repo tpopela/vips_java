@@ -44,9 +44,14 @@ public class VisualStructure {
 		return _nestedBlocks;
 	}
 
-	public void addNestedBlock(VipsBlock vipsBlock)
+	public void addNestedBlock(VipsBlock nestedBlock)
 	{
-		this._nestedBlocks.add(vipsBlock);
+		this._nestedBlocks.add(nestedBlock);
+	}
+
+	public void addNestedBlocks(List<VipsBlock> nestedBlocks)
+	{
+		this._nestedBlocks.addAll(nestedBlocks);
 	}
 
 	public void setNestedBlocks(List<VipsBlock> vipsBlocks)

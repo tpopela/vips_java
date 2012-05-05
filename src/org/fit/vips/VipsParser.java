@@ -19,6 +19,7 @@ public class VipsParser {
 
 	private VipsBlock _vipsBlocks = null;
 	private VipsBlock _currentVipsBlock = null;
+	private VipsBlock _tempVipsBlock = null;
 
 	private int _sizeTresholdWidth = 0;
 	private int _sizeTresholdHeight = 0;
@@ -929,12 +930,7 @@ public class VipsParser {
 
 		if (node.getWidth() * node.getHeight() > _sizeTresholdHeight * _sizeTresholdWidth)
 			return false;
-		/*
-		// misto rozmeru pouzit spise plochu, kterou prvek zabira
-		if (node.getWidth() > _sizeTresholdWidth &&
-				node.getHeight() > _sizeTresholdHeight)
-			return false;
-		 */
+
 		_currentVipsBlock.setIsVisualBlock(true);
 		_currentVipsBlock.setIsDividable(false);
 
@@ -992,12 +988,17 @@ public class VipsParser {
 	{
 		System.err.println("Applying rule Ten on " + node.getNode().getNodeName() + " node");
 
-		VipsBlock previousSiblingVipsBlock = null;
-		findPreviousSiblingNodeVipsBlock(node.getNode().getPreviousSibling(), _vipsBlocks, previousSiblingVipsBlock);
+		//VipsBlock previousSiblingVipsBlock = null;
+		//findPreviousSiblingNodeVipsBlock(node.getNode().getPreviousSibling(), _vipsBlocks, previousSiblingVipsBlock);
 
-		if (previousSiblingVipsBlock != null)
-			if (previousSiblingVipsBlock.isAlreadyDivided())
-				return true;
+		_tempVipsBlock = null;
+		findPreviousSiblingNodeVipsBlock(node.getNode().getPreviousSibling(), _vipsBlocks);
+
+		if (_tempVipsBlock == null)
+			return false;
+
+		if (_tempVipsBlock.isAlreadyDivided())
+			return true;
 
 		return false;
 	}
@@ -1082,12 +1083,15 @@ public class VipsParser {
 	 * @param vipsBlock Actual VIPS block
 	 * @param foundBlock VIPS block for given node
 	 */
-	private void findPreviousSiblingNodeVipsBlock(Node node, VipsBlock vipsBlock, VipsBlock foundBlock)
+	private void findPreviousSiblingNodeVipsBlock(Node node, VipsBlock vipsBlock)
 	{
 		if (vipsBlock.getBox().getNode().equals(node))
-			foundBlock = vipsBlock;
+		{
+			_tempVipsBlock = vipsBlock;
+			return;
+		}
 		else
 			for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
-				findPreviousSiblingNodeVipsBlock(node, vipsBlockChild, foundBlock);
+				findPreviousSiblingNodeVipsBlock(node, vipsBlockChild);
 	}
 }

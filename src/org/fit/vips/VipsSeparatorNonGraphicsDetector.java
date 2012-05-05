@@ -103,8 +103,7 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 	}
 
 	/**
-	 * Computes vertical visual separators from given visual blocks.
-	 * @param vipsBlock Vips block
+	 * Computes vertical visual separators
 	 */
 	private void findVerticalSeparators()
 	{
@@ -157,9 +156,19 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 						separator.startPoint = blockEnd+1;
 						break;
 					}
-					// if block is in the middle of separator
-					if (blockStart > separator.startPoint && blockEnd < separator.endPoint)
+					// if block is inside the separator
+					if (blockStart >= separator.startPoint && blockEnd <= separator.endPoint)
 					{
+						if (blockStart == separator.startPoint)
+						{
+							separator.startPoint = blockEnd+1;
+							break;
+						}
+						if (blockEnd == separator.endPoint)
+						{
+							separator.endPoint = blockStart - 1;
+							break;
+						}
 						// add new separator that starts behind the block
 						_verticalSeparators.add(_verticalSeparators.indexOf(separator) + 1, new Separator(blockEnd + 1, separator.endPoint));
 						// change end point coordinates of separator, that's before block
@@ -197,8 +206,7 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 	}
 
 	/**
-	 * Computes horizontal visual separators from given visual blocks.
-	 * @param vipsBlock Vips Block
+	 * Computes horizontal visual separators
 	 */
 	private void findHorizontalSeparators()
 	{
@@ -251,9 +259,19 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 						separator.startPoint = blockEnd+1;
 						break;
 					}
-					// if block is in the middle of separator
-					if (blockStart > separator.startPoint && blockEnd < separator.endPoint)
+					// if block is inside the separator
+					if (blockStart >= separator.startPoint && blockEnd < separator.endPoint)
 					{
+						if (blockStart == separator.startPoint)
+						{
+							separator.startPoint = blockEnd+1;
+							break;
+						}
+						if (blockEnd == separator.endPoint)
+						{
+							separator.endPoint = blockStart - 1;
+							break;
+						}
 						// add new separator that starts behind the block
 						_horizontalSeparators.add(_horizontalSeparators.indexOf(separator) + 1, new Separator(blockEnd + 1, separator.endPoint));
 						// change end point coordinates of separator, that's before block
