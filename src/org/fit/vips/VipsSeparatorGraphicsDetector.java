@@ -7,6 +7,7 @@
 package org.fit.vips;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -807,9 +808,12 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 		_pool.setColor(Color.red);
 		for (Separator separator : _verticalSeparators)
 		{
-			Rectangle rect = new Rectangle(separator.startPoint,
-					0, separator.endPoint - separator.startPoint,
-					_image.getHeight());
+			Rectangle rect;
+			if (separator.leftUp != null)
+				rect = new Rectangle(separator.leftUp, new Dimension((int) (separator.rightDown.getX() - separator.leftUp.getX()), (int) (separator.rightDown.getY() - separator.leftUp.getY())));
+			else
+				rect = new Rectangle(separator.startPoint, 0, separator.endPoint - separator.startPoint, _image.getHeight());
+
 			_pool.draw(rect);
 			_pool.fill(rect);
 		}
@@ -843,9 +847,12 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 		_pool.setColor(Color.blue);
 		for (Separator separator : _horizontalSeparators)
 		{
-			Rectangle rect = new Rectangle(0,
-					separator.startPoint, _image.getWidth(),
-					separator.endPoint - separator.startPoint);
+			Rectangle rect;
+			if (separator.leftUp != null)
+				rect = new Rectangle(separator.leftUp, new Dimension((int) (separator.rightDown.getX() - separator.leftUp.getX()), (int) (separator.rightDown.getY() - separator.leftUp.getY())));
+			else
+				rect = new Rectangle(0, separator.startPoint, _image.getWidth(), separator.endPoint - separator.startPoint);
+
 			_pool.draw(rect);
 			_pool.fill(rect);
 		}
@@ -876,7 +883,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	 */
 	public void saveToImage(String filename)
 	{
-		filename = System.getProperty("user.dir") + filename + ".png";
+		filename = System.getProperty("user.dir") + "/" + filename + ".png";
 		try
 		{
 			ImageIO.write(_image, "png", new File(filename));

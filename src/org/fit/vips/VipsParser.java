@@ -960,7 +960,6 @@ public class VipsParser {
 
 		for (Box childNode : node.getSubBoxList())
 		{
-			System.out.println(childNode.getWidth() + " " + childNode.getHeight());
 			int childSize = childNode.getWidth() * childNode.getHeight();
 
 			if (maxSize < childSize)

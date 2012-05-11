@@ -77,14 +77,14 @@ public class Vips {
 			getDomTree(urlStream);
 			getViewport();
 
-			int numberOfIterations = 2;
+			int numberOfIterations = 3;
 			int pageWidth = _viewport.getWidth();
 			int pageHeight = _viewport.getHeight();
 			int sizeTresholdWidth = 80;
 			int sizeTresholdHeight = 80;
 
 			boolean graphicsOutput = true;
-			boolean outputToFolder = false;
+			boolean outputToFolder = true;
 			boolean includeBlocks = false;
 			boolean escapeOutput = true;
 
@@ -95,7 +95,7 @@ public class Vips {
 			if (outputToFolder)
 			{
 				Calendar cal = Calendar.getInstance();
-				SimpleDateFormat sdf = new SimpleDateFormat("dd_MM_yyyy_hh_mm");
+				SimpleDateFormat sdf = new SimpleDateFormat("dd_MM_yyyy_HH_mm");
 				outputFolder += sdf.format(cal.getTime());
 				outputFolder += "_";
 				outputFolder += _url.getHost().replaceAll("\\.", "_");
@@ -171,8 +171,8 @@ public class Vips {
 				constructor.constructVisualStructure();
 
 				// 65 seznam.cz
-				sizeTresholdHeight -= 65;
-				sizeTresholdWidth -= 65;
+				sizeTresholdHeight -= 33;
+				sizeTresholdWidth -= 33;
 
 				System.err.println();
 				System.err.println();
