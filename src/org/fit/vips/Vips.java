@@ -77,7 +77,7 @@ public class Vips {
 			getDomTree(urlStream);
 			getViewport();
 
-			int numberOfIterations = 3;
+			int numberOfIterations = 2;
 			int pageWidth = _viewport.getWidth();
 			int pageHeight = _viewport.getHeight();
 			int sizeTresholdWidth = 80;
@@ -167,8 +167,12 @@ public class Vips {
 				constructor.constructVisualStructure();
 
 				// 65 seznam.cz
-				sizeTresholdHeight -= 33;
-				sizeTresholdWidth -= 33;
+				sizeTresholdHeight -= 65;
+				if (sizeTresholdHeight <= 0)
+					sizeTresholdHeight = 1;
+				sizeTresholdWidth -= 65;
+				if (sizeTresholdWidth <= 0)
+					sizeTresholdWidth = 1;
 
 				System.err.println();
 				System.err.println();
@@ -177,6 +181,8 @@ public class Vips {
 				System.err.println();
 
 			}
+
+			constructor.normalizeSeparators();
 
 			VipsOutput vipsOutput = new VipsOutput();
 			vipsOutput.setEscapeOutput(escapeOutput);

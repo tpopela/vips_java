@@ -811,7 +811,6 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	public void exportAllToImage(int suffix)
 	{
 		createPool();
-		fillPool();
 		fillPoolWithBlocks(_visualBlocks);
 		drawVerticalSeparators();
 		drawHorizontalSeparators();

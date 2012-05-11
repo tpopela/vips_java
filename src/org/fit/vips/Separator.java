@@ -15,6 +15,7 @@ public class Separator implements Comparable<Separator> {
 	public int startPoint;
 	public int endPoint;
 	public int weight = 10;
+	public int normalizedWeight = 0;
 
 	// for horizontal separators it means
 	public Point leftUp;
