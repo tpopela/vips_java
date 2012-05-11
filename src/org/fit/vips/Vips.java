@@ -6,9 +6,12 @@
 
 package org.fit.vips;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import org.fit.cssbox.css.CSSNorm;
 import org.fit.cssbox.css.DOMAnalyzer;
@@ -81,6 +84,33 @@ public class Vips {
 			int sizeTresholdHeight = 80;
 
 			boolean graphicsOutput = true;
+			boolean outputToFolder = false;
+			boolean includeBlocks = false;
+			boolean escapeOutput = true;
+
+			String outputFolder = "";
+			String oldWorkingDirectory = "";
+			String newWorkingDirectory = "";
+
+			if (outputToFolder)
+			{
+				Calendar cal = Calendar.getInstance();
+				SimpleDateFormat sdf = new SimpleDateFormat("dd_MM_yyyy_hh_mm");
+				outputFolder += sdf.format(cal.getTime());
+				outputFolder += "_";
+				outputFolder += _url.getHost().replaceAll("\\.", "_");
+
+				if (!new File(outputFolder).mkdir())
+				{
+					System.err.println("Something goes wrong during directory creation!");
+				}
+				else
+				{
+					oldWorkingDirectory = System.getProperty("user.dir");
+					newWorkingDirectory += oldWorkingDirectory + "/" + outputFolder + "/";
+					System.setProperty("user.dir", newWorkingDirectory);
+				}
+			}
 
 			VipsParser vipsParser = new VipsParser(_viewport);
 			VipsSeparatorGraphicsDetector detector = new VipsSeparatorGraphicsDetector(
@@ -108,6 +138,9 @@ public class Vips {
 				{
 					//visual separators detection
 					detector.fillPool();
+					//if (outputToFolder)
+					//detector.saveToImage("pool" + i, outputFolder);
+					//else
 					detector.saveToImage("pool" + i);
 				}
 
@@ -150,8 +183,12 @@ public class Vips {
 			}
 
 			VipsOutput vipsOutput = new VipsOutput();
-			vipsOutput.setEscapeOutput(true);
+			vipsOutput.setEscapeOutput(escapeOutput);
+			vipsOutput.setIncludeBlocks(includeBlocks);
 			vipsOutput.writeXML(constructor.getVisualStructure(), _viewport);
+
+			if (outputToFolder)
+				System.setProperty("user.dir", oldWorkingDirectory);
 
 			urlStream.close();
 		}

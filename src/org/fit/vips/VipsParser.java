@@ -934,6 +934,7 @@ public class VipsParser {
 		_currentVipsBlock.setIsVisualBlock(true);
 		_currentVipsBlock.setIsDividable(false);
 
+		_currentVipsBlock.setDoC(222);
 		//TODO DoC Part
 		return true;
 	}
@@ -959,6 +960,7 @@ public class VipsParser {
 
 		for (Box childNode : node.getSubBoxList())
 		{
+			System.out.println(childNode.getWidth() + " " + childNode.getHeight());
 			int childSize = childNode.getWidth() * childNode.getHeight();
 
 			if (maxSize < childSize)
@@ -971,7 +973,7 @@ public class VipsParser {
 		//TODO set DOC
 		_currentVipsBlock.setIsVisualBlock(true);
 		_currentVipsBlock.setIsDividable(false);
-
+		_currentVipsBlock.setDoC(111);
 		return false;
 	}
 
@@ -1036,6 +1038,7 @@ public class VipsParser {
 		_currentVipsBlock.setIsDividable(false);
 		_currentVipsBlock.setIsVisualBlock(true);
 
+		_currentVipsBlock.setDoC(333);
 		//TODO DoC Part
 		return true;
 	}

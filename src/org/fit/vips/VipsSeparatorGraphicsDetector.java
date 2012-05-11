@@ -876,6 +876,27 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	 */
 	public void saveToImage(String filename)
 	{
+		filename = System.getProperty("user.dir") + filename + ".png";
+		try
+		{
+			ImageIO.write(_image, "png", new File(filename));
+		} catch (Exception e)
+		{
+			System.err.println("Error: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Saves pool to image
+	 */
+	public void saveToImage(String filename, String folder)
+	{
+		if (folder.equals(""))
+			return;
+
+		filename = folder + "/" + filename + ".png";
+
 		try
 		{
 			ImageIO.write(_image, "png", new File(filename));

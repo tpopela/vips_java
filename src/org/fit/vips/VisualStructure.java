@@ -337,12 +337,19 @@ public class VisualStructure {
 			return -1;
 	}
 
-	public int getSourceIndex()
+	public String getSourceIndex()
 	{
-		if (_nestedBlocks.size() > 0)
-			return _nestedBlocks.get(0).getSourceIndex();
-		else
-			return -1;
+		String sourceIndex = "";
+
+		for (VipsBlock block : _nestedBlocks)
+		{
+			if (!sourceIndex.equals(""))
+				sourceIndex += ";";
+
+			sourceIndex += block.getSourceIndex();
+		}
+
+		return sourceIndex;
 	}
 
 	public void setOrder(int order)
