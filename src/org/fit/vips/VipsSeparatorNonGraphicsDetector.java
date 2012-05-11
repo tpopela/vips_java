@@ -385,7 +385,7 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 
 		for (Separator separator : tempList)
 		{
-			int width = separator.endPoint - separator.startPoint;
+			int width = separator.endPoint - separator.startPoint + 1;
 
 			if (width < 10)
 				separators.remove(separator);

@@ -74,6 +74,14 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 		g.drawImage(_image, 0, 0, null);
 	}
 
+	private void fillPoolWithBlocks(List<VipsBlock> visualBlocks)
+	{
+		for (VipsBlock block : visualBlocks)
+		{
+			addVisualBlock(block);
+		}
+	}
+
 	private void fillPoolWithBlocks(VipsBlock vipsBlock)
 	{
 		if (vipsBlock.isVisualBlock())
@@ -446,7 +454,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 
 		for (Separator separator : tempList)
 		{
-			int width = separator.endPoint - separator.startPoint;
+			int width = separator.endPoint - separator.startPoint + 1;
 
 			if (width < 10)
 				separators.remove(separator);
@@ -499,7 +507,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	 */
 	private void ruleOne(Separator separator)
 	{
-		int width = separator.endPoint - separator.startPoint;
+		int width = separator.endPoint - separator.startPoint + 1;
 		int weight = 0;
 		if (width < 10)
 			weight = 1;
@@ -800,6 +808,16 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 		saveToImage("all");
 	}
 
+	public void exportAllToImage(int suffix)
+	{
+		createPool();
+		fillPool();
+		fillPoolWithBlocks(_visualBlocks);
+		drawVerticalSeparators();
+		drawHorizontalSeparators();
+		saveToImage("iteration" + suffix);
+	}
+
 	/**
 	 * Adds all detected vertical separators to pool
 	 */
@@ -810,9 +828,11 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 		{
 			Rectangle rect;
 			if (separator.leftUp != null)
-				rect = new Rectangle(separator.leftUp, new Dimension((int) (separator.rightDown.getX() - separator.leftUp.getX()), (int) (separator.rightDown.getY() - separator.leftUp.getY())));
+				rect = new Rectangle(separator.leftUp, new Dimension(
+						(int) (separator.rightDown.getX() - separator.leftUp.getX()+1),
+						(int) (separator.rightDown.getY() - separator.leftUp.getY()) + 1));
 			else
-				rect = new Rectangle(separator.startPoint, 0, separator.endPoint - separator.startPoint, _image.getHeight());
+				rect = new Rectangle(separator.startPoint, 0, separator.endPoint - separator.startPoint + 1, _image.getHeight());
 
 			_pool.draw(rect);
 			_pool.fill(rect);
@@ -849,9 +869,11 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 		{
 			Rectangle rect;
 			if (separator.leftUp != null)
-				rect = new Rectangle(separator.leftUp, new Dimension((int) (separator.rightDown.getX() - separator.leftUp.getX()), (int) (separator.rightDown.getY() - separator.leftUp.getY())));
+				rect = new Rectangle(separator.leftUp, new Dimension(
+						(int) (separator.rightDown.getX() - separator.leftUp.getX()) + 1,
+						(int) (separator.rightDown.getY() - separator.leftUp.getY()) + 1));
 			else
-				rect = new Rectangle(0, separator.startPoint, _image.getWidth(), separator.endPoint - separator.startPoint);
+				rect = new Rectangle(0, separator.startPoint, _image.getWidth(), separator.endPoint - separator.startPoint + 1);
 
 			_pool.draw(rect);
 			_pool.fill(rect);

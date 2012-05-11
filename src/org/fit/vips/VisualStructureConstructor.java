@@ -168,6 +168,9 @@ public class VisualStructureConstructor {
 
 		detector.setVerticalSeparators(allSeparators);
 		detector.exportVerticalSeparatorsToImage(_iteration);
+
+		detector.setVisualBlocks(_visualBlocks);
+		detector.exportAllToImage(_iteration);
 	}
 
 	private void constructWithHorizontalSeparators(VisualStructure actualStructure)
@@ -494,6 +497,7 @@ public class VisualStructureConstructor {
 			if (visualStructure.getNestedBlocks().size() == 0)
 			{
 				visualStructure.addNestedBlocks(oldNestedBlocks);
+				_visualBlocks.addAll(oldNestedBlocks);
 			}
 			oldNestedBlocks.clear();
 		}
@@ -514,7 +518,7 @@ public class VisualStructureConstructor {
 
 		for (Separator sep : visualStructure.getHorizontalSeparators())
 		{
-			if ((sep.endPoint - sep.startPoint) == 0 || (sep.endPoint - sep.startPoint) == -1)
+			if ((sep.endPoint - sep.startPoint + 1) == 0 || (sep.endPoint - sep.startPoint + 1) == -1)
 			{
 				System.err.println(sep.startPoint + " " + sep.endPoint + " " + " " + sep.weight + " " + visualStructure.getId());
 			}
@@ -531,7 +535,7 @@ public class VisualStructureConstructor {
 
 		for (Separator sep : visualStructure.getVerticalSeparators())
 		{
-			if ((sep.endPoint - sep.startPoint) == 0 || (sep.endPoint - sep.startPoint) == -1)
+			if ((sep.endPoint - sep.startPoint + 1) == 0 || (sep.endPoint - sep.startPoint + 1) == -1)
 			{
 				System.err.println(sep.startPoint + " " + sep.endPoint + " " + " " + sep.weight + " " + visualStructure.getId());
 			}

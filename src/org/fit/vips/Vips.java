@@ -132,15 +132,11 @@ public class Vips {
 				vipsParser.parse();
 				VipsBlock vipsBlocks = vipsParser.getVipsBlocks();
 
-				detector.setVipsBlock(vipsBlocks);
-
 				if (graphicsOutput)
 				{
 					//visual separators detection
+					detector.setVipsBlock(vipsBlocks);
 					detector.fillPool();
-					//if (outputToFolder)
-					//detector.saveToImage("pool" + i, outputFolder);
-					//else
 					detector.saveToImage("pool" + i);
 				}
 
