@@ -29,6 +29,7 @@ public final class VipsOutput {
 	private Document doc = null;
 	private boolean _escapeOutput = true;
 	private boolean _includeBlocks = false;
+	private int _pDoC = 0;
 
 	public VipsOutput() {
 
@@ -73,77 +74,112 @@ public final class VipsOutput {
 		layoutNode.setAttribute("ObjectRectTop", String.valueOf(visualStructure.getY()));
 		layoutNode.setAttribute("ObjectRectWidth", String.valueOf(visualStructure.getWidth()));
 		layoutNode.setAttribute("ObjectRectHeight", String.valueOf(visualStructure.getHeight()));
-		layoutNode.setAttribute("CID", visualStructure.getId());
+		layoutNode.setAttribute("ID", visualStructure.getId());
 		layoutNode.setAttribute("order", String.valueOf(visualStructure.getOrder()));
 
-		if (_includeBlocks)
+		if (_pDoC >= visualStructure.getDoC())
 		{
-			if (visualStructure.getChildrenVisualStructures().size() == 0)
+
+			if (_includeBlocks)
 			{
-				if (visualStructure.getNestedBlocks().size() > 0)
+				if (visualStructure.getChildrenVisualStructures().size() == 0)
 				{
-					int numberOfBlock = 1;
-					for (VipsBlock block : visualStructure.getNestedBlocks())
+					if (visualStructure.getNestedBlocks().size() > 0)
 					{
-						ElementBox elementBox = block.getElementBox();
+						int numberOfBlock = 1;
+						for (VipsBlock block : visualStructure.getNestedBlocks())
+						{
+							ElementBox elementBox = block.getElementBox();
 
-						if (elementBox == null)
-							continue;
+							if (elementBox == null)
+								continue;
 
-						String src = "";
-						String content = "";
+							String src = "";
+							String content = "";
 
-						if (!elementBox.getNode().getNodeName().equals("Xdiv") &&
-								!elementBox.getNode().getNodeName().equals("Xspan"))
-							src += getSource(elementBox.getElement());
-						else
-							src += elementBox.getText();
+							if (!elementBox.getNode().getNodeName().equals("Xdiv") &&
+									!elementBox.getNode().getNodeName().equals("Xspan"))
+								src += getSource(elementBox.getElement());
+							else
+								src += elementBox.getText();
 
-						content += elementBox.getText();
+							content += elementBox.getText();
 
-						layoutNode.setAttribute("innerHTML" + numberOfBlock, src);
-						layoutNode.setAttribute("innerText" + numberOfBlock, content);
-						layoutNode.setAttribute("textLength" + numberOfBlock, String.valueOf(content.length()));
+							layoutNode.setAttribute("innerHTML" + numberOfBlock, src);
+							layoutNode.setAttribute("innerText" + numberOfBlock, content);
+							layoutNode.setAttribute("textLength" + numberOfBlock, String.valueOf(content.length()));
 
-						numberOfBlock++;
+							numberOfBlock++;
+						}
 					}
 				}
 			}
+			else
+			{
+				if (visualStructure.getChildrenVisualStructures().size() == 0)
+				{
+					if (visualStructure.getNestedBlocks().size() > 0)
+					{
+						String src = "";
+						String content = "";
+						for (VipsBlock block : visualStructure.getNestedBlocks())
+						{
+							ElementBox elementBox = block.getElementBox();
+
+							if (elementBox == null)
+								continue;
+
+							if (!elementBox.getNode().getNodeName().equals("Xdiv") &&
+									!elementBox.getNode().getNodeName().equals("Xspan"))
+								src += getSource(elementBox.getElement());
+							else
+								src += elementBox.getText();
+
+							content += elementBox.getText();
+
+						}
+						layoutNode.setAttribute("SRC", src);
+						layoutNode.setAttribute("Content", content);
+					}
+				}
+			}
+
+			parentNode.appendChild(layoutNode);
+
+			//		if (_pDoC < visualStructure.getDoC())
+			//			return;
+
+			for (VisualStructure child : visualStructure.getChildrenVisualStructures())
+				writeVisualBlocks(layoutNode, child);
 		}
 		else
 		{
-			if (visualStructure.getChildrenVisualStructures().size() == 0)
+			if (visualStructure.getNestedBlocks().size() > 0)
 			{
-				if (visualStructure.getNestedBlocks().size() > 0)
+				String src = "";
+				String content = "";
+				for (VipsBlock block : visualStructure.getNestedBlocks())
 				{
-					String src = "";
-					String content = "";
-					for (VipsBlock block : visualStructure.getNestedBlocks())
-					{
-						ElementBox elementBox = block.getElementBox();
+					ElementBox elementBox = block.getElementBox();
 
-						if (elementBox == null)
-							continue;
+					if (elementBox == null)
+						continue;
 
-						if (!elementBox.getNode().getNodeName().equals("Xdiv") &&
-								!elementBox.getNode().getNodeName().equals("Xspan"))
-							src += getSource(elementBox.getElement());
-						else
-							src += elementBox.getText();
+					if (!elementBox.getNode().getNodeName().equals("Xdiv") &&
+							!elementBox.getNode().getNodeName().equals("Xspan"))
+						src += getSource(elementBox.getElement());
+					else
+						src += elementBox.getText();
 
-						content += elementBox.getText();
+					content += elementBox.getText();
 
-					}
-					layoutNode.setAttribute("SRC", src);
-					layoutNode.setAttribute("Content", content);
 				}
+				layoutNode.setAttribute("SRC", src);
+				layoutNode.setAttribute("Content", content);
 			}
+
+			parentNode.appendChild(layoutNode);
 		}
-
-		parentNode.appendChild(layoutNode);
-
-		for (VisualStructure child : visualStructure.getChildrenVisualStructures())
-			writeVisualBlocks(layoutNode, child);
 	}
 
 	public void writeXML(VisualStructure visualStructure, Viewport pageViewport)
@@ -212,5 +248,10 @@ public final class VipsOutput {
 	public void setIncludeBlocks(boolean value)
 	{
 		_includeBlocks = value;
+	}
+
+	public void setPDoC(int pDoC)
+	{
+		_pDoC = pDoC;
 	}
 }

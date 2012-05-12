@@ -6,12 +6,15 @@
 
 package org.fit.vips;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+
+import javax.imageio.ImageIO;
 
 import org.fit.cssbox.css.CSSNorm;
 import org.fit.cssbox.css.DOMAnalyzer;
@@ -53,6 +56,33 @@ public class Vips {
 		_viewport = ((BrowserCanvas) _browserCanvas).getViewport();
 	}
 
+	private static void exportPageToImage()
+	{
+		try
+		{
+			BufferedImage page = ((BrowserCanvas) _browserCanvas).getImage();
+			String filename = System.getProperty("user.dir") + "/page.png";
+			ImageIO.write(page, "png", new File(filename));
+		} catch (Exception e)
+		{
+			System.err.println("Error: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	private static String generateFolderName()
+	{
+		String outputFolder = "";
+
+		Calendar cal = Calendar.getInstance();
+		SimpleDateFormat sdf = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss");
+		outputFolder += sdf.format(cal.getTime());
+		outputFolder += "_";
+		outputFolder += _url.getHost().replaceAll("\\.", "_");
+
+		return outputFolder;
+	}
+
 	/*
 	 * Main entrance to VIPS
 	 */
@@ -64,6 +94,19 @@ public class Vips {
 
 		try
 		{
+			//boolean graphicsOutput = true;
+			boolean graphicsOutput = false;
+			boolean outputToFolder = true;
+			boolean includeBlocks = false;
+			boolean escapeOutput = true;
+			int pDoC = 5;
+
+			if (pDoC <= 0 || pDoC> 11)
+			{
+				System.err.println("pDoC value must be between 1 and 11! Not " + pDoC + "!");
+				return;
+			}
+
 			String url = args[0];
 
 			if (url.startsWith("http://") || url.startsWith("https://"))
@@ -77,16 +120,13 @@ public class Vips {
 			getDomTree(urlStream);
 			getViewport();
 
-			int numberOfIterations = 2;
+			long startTime = System.nanoTime();
+
+			int numberOfIterations = 3;
 			int pageWidth = _viewport.getWidth();
 			int pageHeight = _viewport.getHeight();
 			int sizeTresholdWidth = 80;
 			int sizeTresholdHeight = 80;
-
-			boolean graphicsOutput = true;
-			boolean outputToFolder = true;
-			boolean includeBlocks = false;
-			boolean escapeOutput = true;
 
 			String outputFolder = "";
 			String oldWorkingDirectory = "";
@@ -94,11 +134,7 @@ public class Vips {
 
 			if (outputToFolder)
 			{
-				Calendar cal = Calendar.getInstance();
-				SimpleDateFormat sdf = new SimpleDateFormat("dd_MM_yyyy_HH_mm");
-				outputFolder += sdf.format(cal.getTime());
-				outputFolder += "_";
-				outputFolder += _url.getHost().replaceAll("\\.", "_");
+				outputFolder = generateFolderName();
 
 				if (!new File(outputFolder).mkdir())
 				{
@@ -112,9 +148,11 @@ public class Vips {
 				}
 			}
 
+			if (graphicsOutput)
+				exportPageToImage();
+
+			VipsSeparatorGraphicsDetector detector = new VipsSeparatorGraphicsDetector(pageWidth, pageHeight);
 			VipsParser vipsParser = new VipsParser(_viewport);
-			VipsSeparatorGraphicsDetector detector = new VipsSeparatorGraphicsDetector(
-					pageWidth, pageHeight);
 			VisualStructureConstructor constructor = new VisualStructureConstructor();
 			constructor.setGraphicsOutput(graphicsOutput);
 
@@ -179,20 +217,29 @@ public class Vips {
 				System.err.println("End of iteration number " + i);
 				System.err.println();
 				System.err.println();
-
 			}
 
+			//constructor.zScoreNormalization();
+			System.err.println();
+			System.err.println();
 			constructor.normalizeSeparators();
 
 			VipsOutput vipsOutput = new VipsOutput();
 			vipsOutput.setEscapeOutput(escapeOutput);
 			vipsOutput.setIncludeBlocks(includeBlocks);
+			vipsOutput.setPDoC(pDoC);
 			vipsOutput.writeXML(constructor.getVisualStructure(), _viewport);
 
 			if (outputToFolder)
 				System.setProperty("user.dir", oldWorkingDirectory);
 
 			urlStream.close();
+
+			long endTime = System.nanoTime();
+			long diff = endTime - startTime;
+			System.err.println("Execution time of VIPS: " + diff + " ns; " +
+					(diff / 1000000.0) + " ms; " +
+					(diff / 1000000000.0) + " sec");
 		}
 		catch (Exception e)
 		{

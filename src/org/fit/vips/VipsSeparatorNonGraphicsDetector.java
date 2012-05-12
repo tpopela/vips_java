@@ -122,7 +122,7 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 					// next there are six relations that the separator and visual block can have
 
 					// if separator is inside visual block
-					if (blockStart < separator.startPoint && blockEnd > separator.endPoint)
+					if (blockStart < separator.startPoint && blockEnd >= separator.endPoint)
 					{
 						List<Separator> tempSeparators = new ArrayList<Separator>();
 						tempSeparators.addAll(_verticalSeparators);
@@ -225,7 +225,7 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 					// next there are six relations that the separator and visual block can have
 
 					// if separator is inside visual block
-					if (blockStart < separator.startPoint && blockEnd > separator.endPoint)
+					if (blockStart < separator.startPoint && blockEnd >= separator.endPoint)
 					{
 						List<Separator> tempSeparators = new ArrayList<Separator>();
 						tempSeparators.addAll(_horizontalSeparators);

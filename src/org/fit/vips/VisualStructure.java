@@ -221,6 +221,48 @@ public class VisualStructure {
 		return _doC;
 	}
 
+	public void updateToNormalizedDoC()
+	{
+		_doC = 100;
+
+		for (VisualStructure visualStructure : _childrenVisualStructures)
+		{
+			for (Separator separator : visualStructure.getHorizontalSeparators())
+			{
+				if (separator.normalizedWeight < _doC)
+					_doC = separator.normalizedWeight;
+			}
+			for (Separator separator : visualStructure.getVerticalSeparators())
+			{
+				if (separator.normalizedWeight < _doC)
+					_doC = separator.normalizedWeight;
+			}
+		}
+
+		if (_childrenVisualStructures.size() == 0)
+		{
+			if (_nestedBlocks.size() == 1)
+			{
+				_doC = _nestedBlocks.get(0).getDoC();
+			}
+			else
+				_doC = 9;
+		}
+
+		/*
+		for (Separator separator : _horizontalSeparators)
+		{
+			if (separator.normalizedWeight < _doC)
+				_doC = separator.normalizedWeight;
+		}
+
+		for (Separator separator : _verticalSeparators)
+		{
+			if (separator.normalizedWeight < _doC)
+				_doC = separator.normalizedWeight;
+		}*/
+	}
+
 	public int containImg()
 	{
 		if (_containImg != -1)
@@ -361,5 +403,4 @@ public class VisualStructure {
 	{
 		return _order;
 	}
-
 }

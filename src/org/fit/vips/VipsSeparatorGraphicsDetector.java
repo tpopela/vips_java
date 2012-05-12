@@ -186,7 +186,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 					// next there are six relations that the separator and visual block can have
 
 					// if separator is inside visual block
-					if (blockStart < separator.startPoint && blockEnd > separator.endPoint)
+					if (blockStart < separator.startPoint && blockEnd >= separator.endPoint)
 					{
 						List<Separator> tempSeparators = new ArrayList<Separator>();
 						tempSeparators.addAll(_verticalSeparators);
@@ -292,7 +292,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 					// next there are six relations that the separator and visual block can have
 
 					// if separator is inside visual block
-					if (blockStart < separator.startPoint && blockEnd > separator.endPoint)
+					if (blockStart < separator.startPoint && blockEnd >= separator.endPoint)
 					{
 						List<Separator> tempSeparators = new ArrayList<Separator>();
 						tempSeparators.addAll(_horizontalSeparators);
@@ -459,7 +459,6 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 			if (width < 10)
 				separators.remove(separator);
 		}
-
 	}
 
 	/**
@@ -731,10 +730,16 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 				int diff = Math.abs(top.getFontSize() - bottom.getFontSize());
 				if (diff != 0)
 				{
-					diff /= 2;
-					separator.weight += 2;
+					separator.weight += diff;
 					weightIncreased = true;
 					break;
+				}
+				else
+				{
+					if (!top.getFontWeight().equals(bottom.getFontWeight()))
+					{
+						separator.weight += 2;
+					}
 				}
 			}
 			if (weightIncreased)
@@ -742,7 +747,6 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 		}
 
 		weightIncreased = false;
-		//TODO font weight
 
 		for (VipsBlock top : topAdjacentElements)
 		{
@@ -750,7 +754,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 			{
 				if (top.getFontSize() < bottom.getFontSize())
 				{
-					separator.weight += 2;
+					separator.weight += top.getFontSize() - bottom.getFontSize();
 					weightIncreased = true;
 					break;
 				}
@@ -828,10 +832,10 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 			Rectangle rect;
 			if (separator.leftUp != null)
 				rect = new Rectangle(separator.leftUp, new Dimension(
-						(int) (separator.rightDown.getX() - separator.leftUp.getX()+1),
-						(int) (separator.rightDown.getY() - separator.leftUp.getY()) + 1));
+						(int) (separator.rightDown.getX() - separator.leftUp.getX()),
+						(int) (separator.rightDown.getY() - separator.leftUp.getY())));
 			else
-				rect = new Rectangle(separator.startPoint, 0, separator.endPoint - separator.startPoint + 1, _image.getHeight());
+				rect = new Rectangle(separator.startPoint, 0, separator.endPoint - separator.startPoint, _image.getHeight());
 
 			_pool.draw(rect);
 			_pool.fill(rect);
@@ -869,10 +873,10 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 			Rectangle rect;
 			if (separator.leftUp != null)
 				rect = new Rectangle(separator.leftUp, new Dimension(
-						(int) (separator.rightDown.getX() - separator.leftUp.getX()) + 1,
-						(int) (separator.rightDown.getY() - separator.leftUp.getY()) + 1));
+						(int) (separator.rightDown.getX() - separator.leftUp.getX()),
+						(int) (separator.rightDown.getY() - separator.leftUp.getY())));
 			else
-				rect = new Rectangle(0, separator.startPoint, _image.getWidth(), separator.endPoint - separator.startPoint + 1);
+				rect = new Rectangle(0, separator.startPoint, _image.getWidth(), separator.endPoint - separator.startPoint);
 
 			_pool.draw(rect);
 			_pool.fill(rect);

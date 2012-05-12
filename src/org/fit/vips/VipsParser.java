@@ -153,11 +153,15 @@ public class VipsParser {
 			{
 				System.err.println("Element " + elementBox.getNode().getNodeName() + " is visual block");
 				vipsBlock.setIsVisualBlock(true);
+				vipsBlock.setDoC(11);
 			}
 			else
 			{
 				if (ruleImgLink(elementBox))
+				{
 					vipsBlock.setIsVisualBlock(true);
+					vipsBlock.setDoC(11);
+				}
 
 				if (vipsBlock.isVisualBlock())
 					System.err.println("Element " + elementBox.getNode().getNodeName() + " is visual block");
@@ -664,7 +668,6 @@ public class VipsParser {
 	{
 		System.err.println("Applying rule Three on " + node.getNode().getNodeName() + " node");
 
-		// TODO check if node is root element of the block
 		if (!node.isRootElement())
 			return false;
 
@@ -750,6 +753,11 @@ public class VipsParser {
 
 		_currentVipsBlock.setIsVisualBlock(true);
 		_currentVipsBlock.setIsDividable(false);
+
+		if (node.getSubBoxList().size() == 1)
+		{
+			_currentVipsBlock.setDoC(10);
+		}
 
 		String fontWeight = "";
 		int fontSize = 0;
@@ -972,7 +980,7 @@ public class VipsParser {
 		//TODO set DOC
 		_currentVipsBlock.setIsVisualBlock(true);
 		_currentVipsBlock.setIsDividable(false);
-		_currentVipsBlock.setDoC(111);
+		_currentVipsBlock.setDoC(9);
 		return false;
 	}
 

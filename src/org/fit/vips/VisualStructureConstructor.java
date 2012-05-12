@@ -71,6 +71,7 @@ public class VisualStructureConstructor {
 				separator.setLeftUp(_visualStructure.getX(), separator.startPoint);
 				separator.setRightDown(_visualStructure.getX()+_visualStructure.getWidth(), separator.endPoint);
 			}
+
 			constructWithHorizontalSeparators(_visualStructure);
 		}
 		else
@@ -249,11 +250,15 @@ public class VisualStructureConstructor {
 			iterator++;
 		}
 
-		for (Separator separator : _horizontalSeparators)
+		List<Separator> allSeparatorsInBlock = new ArrayList<>();
+		allSeparatorsInBlock.addAll(_horizontalSeparators);
+		allSeparatorsInBlock.addAll(actualStructure.getHorizontalSeparators());
+
+		for (VisualStructure visualStructure : actualStructure.getChildrenVisualStructures())
 		{
-			for (VisualStructure visualStructure : actualStructure.getChildrenVisualStructures())
+			for (Separator separator : allSeparatorsInBlock)
 			{
-				if (separator.endPoint == visualStructure.getY() + 1)
+				if (separator.endPoint == visualStructure.getY() - 1)
 					visualStructure.addHorizontalSeparator(separator);
 
 				if (separator.startPoint == visualStructure.getY() + visualStructure.getHeight() + 1)
@@ -261,6 +266,17 @@ public class VisualStructureConstructor {
 			}
 		}
 
+		for (VisualStructure visualStructure : actualStructure.getChildrenVisualStructures())
+		{
+			for (Separator separator : actualStructure.getVerticalSeparators())
+			{
+				if (separator.endPoint == visualStructure.getX() - 1)
+					visualStructure.addVerticalSeparator(separator);
+
+				if (separator.startPoint == visualStructure.getX() + visualStructure.getWidth() + 1)
+					visualStructure.addVerticalSeparator(separator);
+			}
+		}
 	}
 
 	private void constructWithVerticalSeparators(VisualStructure actualStructure)
@@ -349,15 +365,31 @@ public class VisualStructureConstructor {
 			iterator++;
 		}
 
-		for (Separator separator : _verticalSeparators)
+		List<Separator> allSeparatorsInBlock = new ArrayList<>();
+		allSeparatorsInBlock.addAll(_verticalSeparators);
+		allSeparatorsInBlock.addAll(actualStructure.getVerticalSeparators());
+
+		for (VisualStructure visualStructure : actualStructure.getChildrenVisualStructures())
 		{
-			for (VisualStructure visualStructure : actualStructure.getChildrenVisualStructures())
+			for (Separator separator : allSeparatorsInBlock)
 			{
-				if (separator.endPoint == visualStructure.getX() + 1)
+				if (separator.endPoint == visualStructure.getX() - 1)
 					visualStructure.addVerticalSeparator(separator);
 
 				if (separator.startPoint == visualStructure.getX() + visualStructure.getWidth() + 1)
 					visualStructure.addVerticalSeparator(separator);
+			}
+		}
+
+		for (VisualStructure visualStructure : actualStructure.getChildrenVisualStructures())
+		{
+			for (Separator separator : actualStructure.getHorizontalSeparators())
+			{
+				if (separator.endPoint == visualStructure.getY() - 1)
+					visualStructure.addHorizontalSeparator(separator);
+
+				if (separator.startPoint == visualStructure.getY() + visualStructure.getHeight() + 1)
+					visualStructure.addHorizontalSeparator(separator);
 			}
 		}
 	}
@@ -528,7 +560,7 @@ public class VisualStructureConstructor {
 		{
 			if ((sep.endPoint - sep.startPoint + 1) == 0 || (sep.endPoint - sep.startPoint + 1) == -1)
 			{
-				System.err.println(sep.startPoint + " " + sep.endPoint + " " + " " + sep.weight + " " + visualStructure.getId());
+				System.err.println("h  " + sep.startPoint + " " + sep.endPoint + " " + " " + sep.weight + " " + visualStructure.getId());
 			}
 		}
 
@@ -546,7 +578,7 @@ public class VisualStructureConstructor {
 		{
 			if ((sep.endPoint - sep.startPoint + 1) == 0 || (sep.endPoint - sep.startPoint + 1) == -1)
 			{
-				System.err.println(sep.startPoint + " " + sep.endPoint + " " + " " + sep.weight + " " + visualStructure.getId());
+				System.err.println("v   " + sep.startPoint + " " + sep.endPoint + " " + " " + sep.weight + " " + visualStructure.getId());
 			}
 		}
 		for (VisualStructure child : visualStructure.getChildrenVisualStructures())
@@ -601,15 +633,95 @@ public class VisualStructureConstructor {
 		List<Separator> separators = new ArrayList<>();
 
 		getAllSeparators(_visualStructure, separators);
+		separators.add(new Separator(10, 10));
+		separators.get(separators.size()-1).weight += _pageWidth / 10;
+		separators.add(new Separator(10, 10));
+		separators.get(separators.size()-1).weight += _pageHeight / 10;
 		Collections.sort(separators);
+
+		System.out.println(separators.size());
 
 		double minWeight = separators.get(0).weight;
 		double maxWeight = separators.get(separators.size()-1).weight;
 
 		for (Separator separator : separators)
 		{
-			double normalizedValue = (separator.weight - minWeight) / (maxWeight - minWeight) * (11 - 1) + 1;
+			double normalizedValue = (separator.weight - minWeight) / (maxWeight - minWeight) * (11 - 4) + 4;
 			separator.normalizedWeight = getInverseValue((int) Math.round(normalizedValue));
+			System.out.println(separator.weight + " " + separator.normalizedWeight);
+		}
+
+		updateDoC(_visualStructure);
+
+		_visualStructure.setDoC(1);
+	}
+
+	private void updateDoC(VisualStructure visualStructure)
+	{
+		for (VisualStructure child : visualStructure.getChildrenVisualStructures())
+		{
+			updateDoC(child);
+		}
+
+		visualStructure.updateToNormalizedDoC();
+	}
+
+	private double getStdDeviation(List<Separator> separators)
+	{
+		double meanValue = 0.0;
+		double stddev = 0.0;
+		List<Double> deviations = new ArrayList<>();
+		List<Double> squaredDeviations = new ArrayList<Double>();
+		double sum = 0.0;
+
+		for (Separator separator : separators)
+		{
+			meanValue += separator.weight;
+		}
+
+		meanValue /= separators.size();
+
+		for (Separator separator : separators)
+		{
+			deviations.add(separator.weight - meanValue);
+		}
+
+		for (Double deviation : deviations)
+		{
+			squaredDeviations.add(deviation * deviation);
+		}
+
+		for (Double squaredDeviation : squaredDeviations)
+		{
+			sum += squaredDeviation;
+		}
+
+		stddev = Math.sqrt(sum/squaredDeviations.size());
+
+		return stddev;
+	}
+
+	public void zScoreNormalization()
+	{
+		List<Separator> separators = new ArrayList<>();
+		getAllSeparators(_visualStructure, separators);
+
+		double meanValue = 0.0;
+
+		for (Separator separator : separators)
+		{
+			meanValue += separator.weight;
+		}
+		meanValue /= separators.size();
+
+		System.out.println(meanValue);
+
+		for (Separator separator : separators)
+		{
+			double normalizedValue = (separator.weight - meanValue) / getStdDeviation(separators);
+			separator.normalizedWeight = getInverseValue((int) Math.round(normalizedValue));
+			System.out.println(normalizedValue + "    " + separator.weight + " " + separator.normalizedWeight);
 		}
 	}
+
 }
