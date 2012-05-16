@@ -12,9 +12,9 @@ import java.awt.Point;
  * Class that represents visual separator
  */
 public class Separator implements Comparable<Separator> {
-	public int startPoint;
-	public int endPoint;
-	public int weight = 10;
+	public int startPoint = 0;
+	public int endPoint = 0;
+	public int weight = 3;
 	public int normalizedWeight = 0;
 
 	// for horizontal separators it means

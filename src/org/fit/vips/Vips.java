@@ -8,7 +8,11 @@ package org.fit.vips;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
@@ -24,15 +28,101 @@ import org.fit.cssbox.layout.Viewport;
 import org.w3c.dom.Document;
 
 public class Vips {
-	private static URL _url = null;
-	private static DOMAnalyzer _domAnalyzer = null;
-	private static javax.swing.JPanel _browserCanvas = null;
-	private static Viewport _viewport = null;
+	private URL _url = null;
+	private DOMAnalyzer _domAnalyzer = null;
+	private javax.swing.JPanel _browserCanvas = null;
+	private Viewport _viewport = null;
 
-	/*
-	 * With help of CssBox gets the DOM tree of page
+	private boolean _graphicsOutput = false;
+	private boolean _outputToFolder = false;
+	private boolean _includeBlocks = false;
+	private boolean _outputEscaping = true;
+	private int _pDoC = 5;
+
+	private PrintStream originalOut = null;
+
+	/**
+	 * Default constructor
 	 */
-	private static void getDomTree(InputStream urlStream)
+	public Vips()
+	{
+	}
+
+	/**
+	 * Enables or disables graphics output of VIPS algorithm.
+	 * @param enable True for enable, otherwise false.
+	 */
+	public void enableGraphicsOutput(boolean enable)
+	{
+		_graphicsOutput = enable;
+	}
+
+	/**
+	 * Enables or disables creation of new directory for every algorithm run.
+	 * @param enable True for enable, otherwise false.
+	 */
+	public void enableOutputToFolder(boolean enable)
+	{
+		_outputToFolder = enable;
+	}
+
+	// TODO mozna odstanit
+	public void enableIncludeBlocks(boolean enable)
+	{
+		_includeBlocks = enable;
+	}
+
+	/**
+	 * Enables or disables output XML character escaping.
+	 * @param enable True for enable, otherwise false.
+	 */
+	public void enableOutputEscaping(boolean enable)
+	{
+		_outputEscaping = enable;
+	}
+
+	/**
+	 * Sets predefined degree of coherence (pDoC) value.
+	 * @param value pDoC value.
+	 */
+	public void setPredefinedDoC(int value)
+	{
+		if (value <= 0 || value > 11)
+		{
+			System.err.println("pDoC value must be between 1 and 11! Not " + value + "!");
+			return;
+		}
+		else
+		{
+			_pDoC = value;
+		}
+	}
+
+	/**
+	 * Sets web page's URL
+	 * @param url Url
+	 * @throws MalformedURLException
+	 */
+	public void setUrl(String url)
+	{
+		try
+		{
+			if (url.startsWith("http://") || url.startsWith("https://"))
+				_url = new URL(url);
+			else
+				_url = new URL("http://" + url);
+		}
+		catch (Exception e)
+		{
+			System.err.println("Invalid address: " + url);
+		}
+	}
+
+	/**
+	 * Parses a builds DOM tree from page source.
+	 * @param urlStream Input stream with page source.
+	 */
+	private void getDomTree(InputStream urlStream)
 	{
 		DOMSource parser = new DOMSource(urlStream);
 		try
@@ -49,14 +139,20 @@ public class Vips {
 		}
 	}
 
-	private static void getViewport()
+	/**
+	 * Gets page's viewport
+	 */
+	private void getViewport()
 	{
 		_browserCanvas = new BrowserCanvas(_domAnalyzer.getRoot(),
 				_domAnalyzer, new java.awt.Dimension(1000, 600), _url);
 		_viewport = ((BrowserCanvas) _browserCanvas).getViewport();
 	}
 
-	private static void exportPageToImage()
+	/**
+	 * Exports rendered page to image.
+	 */
+	private void exportPageToImage()
 	{
 		try
 		{
@@ -70,7 +166,11 @@ public class Vips {
 		}
 	}
 
-	private static String generateFolderName()
+	/**
+	 * Generates folder filename
+	 * @return Folder filename
+	 */
+	private String generateFolderName()
 	{
 		String outputFolder = "";
 
@@ -78,61 +178,166 @@ public class Vips {
 		SimpleDateFormat sdf = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss");
 		outputFolder += sdf.format(cal.getTime());
 		outputFolder += "_";
-		outputFolder += _url.getHost().replaceAll("\\.", "_");
+		outputFolder += _url.getHost().replaceAll("\\.", "_").replaceAll("/", "_");
 
 		return outputFolder;
 	}
 
-	/*
-	 * Main entrance to VIPS
+	/**
+	 * Performs page segmentation.
 	 */
-	public static void main(String args[])
+	private void performSegmentation()
 	{
-		// we've just one argument - web address of page
-		if (args.length != 1)
-			System.exit(0);
+		long startTime = System.nanoTime();
 
-		try
+		int numberOfIterations = 3;
+		int pageWidth = _viewport.getWidth();
+		int pageHeight = _viewport.getHeight();
+		int sizeTresholdWidth = 60;
+		int sizeTresholdHeight = 60;
+
+		if (_graphicsOutput)
+			exportPageToImage();
+
+		VipsSeparatorGraphicsDetector detector;
+		VipsParser vipsParser = new VipsParser(_viewport);
+		VisualStructureConstructor constructor = new VisualStructureConstructor(_pDoC);
+		constructor.setGraphicsOutput(_graphicsOutput);
+
+		for (int i = 1; i < numberOfIterations+1; i++)
 		{
-			//boolean graphicsOutput = true;
-			boolean graphicsOutput = false;
-			boolean outputToFolder = true;
-			boolean includeBlocks = false;
-			boolean escapeOutput = true;
-			int pDoC = 5;
+			System.err.println();
+			System.err.println();
+			System.err.println("Beginning of iteration number " + i);
+			System.err.println();
+			System.err.println();
 
-			if (pDoC <= 0 || pDoC> 11)
+			detector = new VipsSeparatorGraphicsDetector(pageWidth, pageHeight);
+
+			//visual blocks detection
+			vipsParser.setSizeTresholdHeight(sizeTresholdHeight);
+			vipsParser.setSizeTresholdWidth(sizeTresholdWidth);
+
+			if (i != numberOfIterations)
+				vipsParser.parse();
+
+			VipsBlock vipsBlocks = vipsParser.getVipsBlocks();
+
+			for(VipsBlock vb : vipsParser.getVisualBlocks())
 			{
-				System.err.println("pDoC value must be between 1 and 11! Not " + pDoC + "!");
-				return;
+				System.out.println(vb.getDoC() + "   " + vb.getBox().getNode().getNodeName());
 			}
 
-			String url = args[0];
+			if (i == 1)
+			{
+				if (_graphicsOutput)
+				{
+					// in first round we'll export global separators
+					detector.setVipsBlock(vipsBlocks);
+					detector.fillPool();
+					detector.saveToImage("blocks" + i);
+					detector.setCleanUpSeparators(false);
+					detector.detectHorizontalSeparators();
+					detector.detectVerticalSeparators();
+					detector.exportHorizontalSeparatorsToImage();
+					detector.exportVerticalSeparatorsToImage();
+					detector.exportAllToImage();
+				}
 
-			if (url.startsWith("http://") || url.startsWith("https://"))
-				_url = new URL(url);
+				// visual structure construction
+				constructor.setVipsBlocks(vipsBlocks);
+				constructor.setPageSize(pageWidth, pageHeight);
+			}
 			else
-				_url = new URL("http://" + url);
+			{
+				vipsBlocks = vipsParser.getVipsBlocks();
+				constructor.updateVipsBlocks(vipsBlocks);
 
+				if (_graphicsOutput)
+				{
+					detector.setVisualBlocks(constructor.getVisualBlocks());
+					detector.fillPool();
+					detector.saveToImage("blocks" + i);
+				}
+			}
+
+			// visual structure construction
+			constructor.constructVisualStructure();
+
+			sizeTresholdHeight = 1;
+			sizeTresholdWidth = 1;
+
+			System.err.println();
+			System.err.println();
+			System.err.println("End of iteration number " + i);
+		}
+
+		System.err.println();
+		System.err.println();
+
+		constructor.normalizeSeparators();
+
+		VipsOutput vipsOutput = new VipsOutput(_pDoC);
+		vipsOutput.setEscapeOutput(_outputEscaping);
+		vipsOutput.setIncludeBlocks(_includeBlocks);
+		vipsOutput.writeXML(constructor.getVisualStructure(), _viewport);
+
+		long endTime = System.nanoTime();
+		long diff = endTime - startTime;
+
+		System.err.println("Execution time of VIPS: " + diff + " ns; " +
+				(diff / 1000000.0) + " ms; " +
+				(diff / 1000000000.0) + " sec");
+	}
+
+	public void startSegmentation(String url)
+	{
+		setUrl(url);
+
+		startSegmentation();
+	}
+
+	private void restoreOut()
+	{
+		if (originalOut != null)
+		{
+			System.setOut(originalOut);
+		}
+	}
+
+	private void redirectOut()
+	{
+		originalOut = System.out;
+		System.setOut(new PrintStream(new OutputStream() {
+			@Override
+			public void write(int b) throws IOException
+			{
+
+			}
+		}));
+	}
+
+	/**
+	 * Starts visual segmentation of page
+	 * @throws Exception
+	 */
+	public void startSegmentation()
+	{
+		try
+		{
 			URLConnection urlConnection = _url.openConnection();
 			InputStream urlStream = urlConnection.getInputStream();
 
+			redirectOut();
 			getDomTree(urlStream);
 			getViewport();
-
-			long startTime = System.nanoTime();
-
-			int numberOfIterations = 3;
-			int pageWidth = _viewport.getWidth();
-			int pageHeight = _viewport.getHeight();
-			int sizeTresholdWidth = 80;
-			int sizeTresholdHeight = 80;
+			restoreOut();
 
 			String outputFolder = "";
 			String oldWorkingDirectory = "";
 			String newWorkingDirectory = "";
 
-			if (outputToFolder)
+			if (_outputToFolder)
 			{
 				outputFolder = generateFolderName();
 
@@ -148,102 +353,16 @@ public class Vips {
 				}
 			}
 
-			if (graphicsOutput)
-				exportPageToImage();
+			performSegmentation();
 
-			VipsSeparatorGraphicsDetector detector = new VipsSeparatorGraphicsDetector(pageWidth, pageHeight);
-			VipsParser vipsParser = new VipsParser(_viewport);
-			VisualStructureConstructor constructor = new VisualStructureConstructor();
-			constructor.setGraphicsOutput(graphicsOutput);
-
-			for (int i = 1; i < numberOfIterations+1; i++)
-			{
-				System.err.println();
-				System.err.println();
-				System.err.println("Beginning of iteration number " + i);
-				System.err.println();
-				System.err.println();
-
-				//visual blocks detection
-				vipsParser.setSizeTresholdHeight(sizeTresholdHeight);
-				vipsParser.setSizeTresholdWidth(sizeTresholdWidth);
-				vipsParser.parse();
-				VipsBlock vipsBlocks = vipsParser.getVipsBlocks();
-
-				if (graphicsOutput)
-				{
-					//visual separators detection
-					detector.setVipsBlock(vipsBlocks);
-					detector.fillPool();
-					detector.saveToImage("pool" + i);
-				}
-
-				if (i == 1)
-				{
-					if (graphicsOutput)
-					{
-						// in first round we'll export global separators
-						detector.setCleanUpSeparators(true);
-						detector.detectHorizontalSeparators();
-						detector.detectVerticalSeparators();
-						detector.exportHorizontalSeparatorsToImage();
-						detector.exportVerticalSeparatorsToImage();
-						detector.exportAllToImage();
-					}
-
-					// visual structure construction
-					constructor.setVipsBlocks(vipsBlocks);
-					constructor.setPageSize(pageWidth, pageHeight);
-				}
-				else
-				{
-					vipsBlocks = vipsParser.getVipsBlocks();
-					constructor.updateVipsBlocks(vipsBlocks);
-				}
-
-				// visual structure construction
-				constructor.constructVisualStructure();
-
-				// 65 seznam.cz
-				sizeTresholdHeight -= 65;
-				if (sizeTresholdHeight <= 0)
-					sizeTresholdHeight = 1;
-				sizeTresholdWidth -= 65;
-				if (sizeTresholdWidth <= 0)
-					sizeTresholdWidth = 1;
-
-				System.err.println();
-				System.err.println();
-				System.err.println("End of iteration number " + i);
-				System.err.println();
-				System.err.println();
-			}
-
-			//constructor.zScoreNormalization();
-			System.err.println();
-			System.err.println();
-			constructor.normalizeSeparators();
-
-			VipsOutput vipsOutput = new VipsOutput();
-			vipsOutput.setEscapeOutput(escapeOutput);
-			vipsOutput.setIncludeBlocks(includeBlocks);
-			vipsOutput.setPDoC(pDoC);
-			vipsOutput.writeXML(constructor.getVisualStructure(), _viewport);
-
-			if (outputToFolder)
+			if (_outputToFolder)
 				System.setProperty("user.dir", oldWorkingDirectory);
 
 			urlStream.close();
-
-			long endTime = System.nanoTime();
-			long diff = endTime - startTime;
-			System.err.println("Execution time of VIPS: " + diff + " ns; " +
-					(diff / 1000000.0) + " ms; " +
-					(diff / 1000000000.0) + " sec");
 		}
 		catch (Exception e)
 		{
-			System.err.println("Error: " + e.getMessage());
+			System.err.println("Something's wrong!");
 			e.printStackTrace();
 		}
 	}

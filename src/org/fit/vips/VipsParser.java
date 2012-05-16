@@ -134,6 +134,7 @@ public class VipsParser {
 		_currentVipsBlock = vipsBlock;
 		ElementBox elementBox = (ElementBox) vipsBlock.getBox();
 		System.err.println(elementBox.getNode().getNodeName());
+		System.out.println(elementBox.getText());
 
 		// With VIPS rules it tries to determine if element is dividable
 		if (applyVipsRules(elementBox) && vipsBlock.isDividable() && !vipsBlock.isVisualBlock())
@@ -168,7 +169,29 @@ public class VipsParser {
 				else
 					System.err.println("Element " + elementBox.getNode().getNodeName() + " is not dividable");
 			}
+
+			if (!verifyValidity(elementBox))
+			{
+				_currentVipsBlock.setIsVisualBlock(false);
+			}
 		}
+	}
+
+	private boolean verifyValidity(ElementBox node)
+	{
+		if (node.getAbsoluteContentX() < 0 || node.getAbsoluteContentY() < 0)
+			return false;
+
+		if (node.getWidth() <= 0 || node.getHeight() <= 0)
+			return false;
+
+		if (!node.isDisplayed())
+			return false;
+
+		if (!node.isVisible())
+			return false;
+
+		return true;
 	}
 
 	/**
@@ -189,6 +212,9 @@ public class VipsParser {
 
 		if (!node.getParentNode().getFirstChild().getNodeName().equals("img"))
 			return false;
+
+		if (elementBox.getContentWidth() > 1 && elementBox.getContentHeight() > 1)
+			return true;
 
 		return true;
 	}
@@ -292,28 +318,55 @@ public class VipsParser {
 		return false;
 	}
 
+	int _cnt = 0;
+
+	private void checkValidChildrenNodes(Box node)
+	{
+		if (node instanceof TextBox)
+		{
+			_cnt++;
+			return;
+		}
+		else
+		{
+			if (isValidNode((ElementBox) node))
+				_cnt++;
+		}
+
+		for (Box childNode : ((ElementBox) node).getSubBoxList())
+		{
+			checkValidChildrenNodes(childNode);
+		}
+	}
+
 	/*
 	 * Checks if node has valid children nodes
 	 */
-	private boolean hasValidChildNodes(ElementBox node)
+	private boolean hasValidChildrenNodes(ElementBox node)
 	{
+		if (node.getNode().getNodeName().equals("img"))
+		{
+			if (node.getContentWidth() > 1 && node.getContentHeight() > 1)
+			{
+				_currentVipsBlock.setIsVisualBlock(true);
+				_currentVipsBlock.setDoC(8);
+				return true;
+			}
+			else
+				return false;
+		}
+
 		if (node.getSubBoxList().isEmpty())
 			return false;
 
-		int cnt = 0;
+		_cnt = 0;
 
-		for (Box childNode : node.getSubBoxList())
+		for (Box child : node.getSubBoxList())
 		{
-			if (childNode instanceof TextBox)
-			{
-				cnt++;
-				continue;
-			}
-			if (isValidNode((ElementBox) childNode))
-				cnt++;
+			checkValidChildrenNodes(child);
 		}
 
-		return (cnt > 0) ? true : false;
+		return (_cnt > 0) ? true : false;
 	}
 
 	/*
@@ -321,23 +374,17 @@ public class VipsParser {
 	 */
 	private int numberOfValidChildNodes(ElementBox node)
 	{
-		int cnt = 0;
+		_cnt = 0;
 
 		if (node.getSubBoxList().isEmpty())
-			return cnt;
+			return _cnt;
 
-		for (Box childNode : node.getSubBoxList())
+		for (Box child : node.getSubBoxList())
 		{
-			if (childNode instanceof TextBox)
-			{
-				cnt++;
-				continue;
-			}
-			if (isValidNode((ElementBox) childNode))
-				cnt++;
+			checkValidChildrenNodes(child);
 		}
 
-		return cnt;
+		return _cnt;
 	}
 
 	/**
@@ -616,8 +663,15 @@ public class VipsParser {
 
 		if (!isTextNode(node))
 		{
-			if (!hasValidChildNodes(node))
+			if (!hasValidChildrenNodes(node))
 			{
+				if (node.getNode().getNodeName().equals("input") && node.isVisible())
+				{
+					_currentVipsBlock.setIsVisualBlock(true);
+					_currentVipsBlock.setDoC(10);
+					_currentVipsBlock.setIsDividable(false);
+					return true;
+				}
 				_currentVipsBlock.setIsDividable(false);
 				return true;
 			}
@@ -756,7 +810,11 @@ public class VipsParser {
 
 		if (node.getSubBoxList().size() == 1)
 		{
-			_currentVipsBlock.setDoC(10);
+			if (node.getSubBox(0).getNode().getNodeName().equals("em"))
+				_currentVipsBlock.setDoC(11);
+			else
+				_currentVipsBlock.setDoC(10);
+			return true;
 		}
 
 		String fontWeight = "";
@@ -901,6 +959,21 @@ public class VipsParser {
 		return false;
 	}
 
+
+	private void findTextChildrenNodes(Box node, List<Box> results)
+	{
+		if (node instanceof TextBox)
+		{
+			results.add(node);
+			return;
+		}
+
+		for (Box childNode : ((ElementBox) node).getSubBoxList())
+		{
+			findTextChildrenNodes(childNode, results);
+		}
+	}
+
 	/**
 	 * VIPS Rule Eight
 	 * <p>
@@ -919,8 +992,14 @@ public class VipsParser {
 		if (node.getSubBoxList().isEmpty())
 			return false;
 
-		int cnt = 0;
 
+		List<Box> children = new ArrayList<>();
+
+		findTextChildrenNodes(node, children);
+
+		int cnt = children.size();
+
+		/*
 		for (Box childNode : node.getSubBoxList())
 		{
 			if (childNode instanceof TextBox)
@@ -932,18 +1011,46 @@ public class VipsParser {
 			if (isTextNode(child)|| isVirtualTextNode(child))
 				cnt++;
 		}
-
+		 */
 		if (cnt == 0)
 			return false;
+		/*
+		if (node.getWidth() > _sizeTresholdWidth)
+			return false;
+
+		if (node.getHeight() > _sizeTresholdHeight)
+			return false;
+		 */
+
+		if (node.getWidth() == 0 || node.getHeight() == 0)
+		{
+			if (node.getSubBoxList().size() > 0)
+			{
+				for (Box child : node.getSubBoxList())
+				{
+					if (child.getWidth() != 0 && child.getHeight() != 0)
+						return true;
+				}
+			}
+		}
 
 		if (node.getWidth() * node.getHeight() > _sizeTresholdHeight * _sizeTresholdWidth)
 			return false;
 
+		if (node.getNode().getNodeName().equals("ul"))
+		{
+			return true;
+		}
+
 		_currentVipsBlock.setIsVisualBlock(true);
 		_currentVipsBlock.setIsDividable(false);
 
-		_currentVipsBlock.setDoC(222);
-		//TODO DoC Part
+		if (node.getNode().getNodeName().equals("Xdiv"))
+			_currentVipsBlock.setDoC(7);
+		else if (node.getNode().getNodeName().equals("code"))
+			_currentVipsBlock.setDoC(7);
+		else
+			_currentVipsBlock.setDoC(8);
 		return true;
 	}
 
@@ -971,7 +1078,9 @@ public class VipsParser {
 			int childSize = childNode.getWidth() * childNode.getHeight();
 
 			if (maxSize < childSize)
+			{
 				maxSize = childSize;
+			}
 		}
 
 		if (maxSize > _sizeTresholdWidth * _sizeTresholdHeight)
@@ -980,8 +1089,15 @@ public class VipsParser {
 		//TODO set DOC
 		_currentVipsBlock.setIsVisualBlock(true);
 		_currentVipsBlock.setIsDividable(false);
-		_currentVipsBlock.setDoC(9);
-		return false;
+
+		if (node.getNode().getNodeName().equals("Xdiv"))
+			_currentVipsBlock.setDoC(7);
+		if (node.getNode().getNodeName().equals("a"))
+			_currentVipsBlock.setDoC(11);
+		else
+			_currentVipsBlock.setDoC(8);
+
+		return true;
 	}
 
 	/**
@@ -1045,7 +1161,18 @@ public class VipsParser {
 		_currentVipsBlock.setIsDividable(false);
 		_currentVipsBlock.setIsVisualBlock(true);
 
-		_currentVipsBlock.setDoC(333);
+		if (node.getNode().getNodeName().equals("Xdiv"))
+			_currentVipsBlock.setDoC(7);
+		else if (node.getNode().getNodeName().equals("li"))
+			_currentVipsBlock.setDoC(8);
+		else if (node.getNode().getNodeName().equals("span"))
+			_currentVipsBlock.setDoC(8);
+		else if (node.getNode().getNodeName().equals("sup"))
+			_currentVipsBlock.setDoC(8);
+		else if (node.getNode().getNodeName().equals("img"))
+			_currentVipsBlock.setDoC(8);
+		else
+			_currentVipsBlock.setDoC(333);
 		//TODO DoC Part
 		return true;
 	}

@@ -21,7 +21,9 @@ public class VisualStructureConstructor {
 	private int _pageWidth = 0;
 	private int _pageHeight = 0;
 	private int _srcOrder = 1;
-	private int _iteration = 1;
+	private int _iteration = 0;
+	private int _pDoC = 5;
+	private final int _maxDoC = 11;
 
 	private boolean _graphicsOutput = true;
 
@@ -31,15 +33,50 @@ public class VisualStructureConstructor {
 		this._verticalSeparators = new ArrayList<>();
 	}
 
-	public VisualStructureConstructor(VipsBlock vipsBlocks, List<Separator> horizontalSeparators, List<Separator> vericalSeparators)
+	public VisualStructureConstructor(int pDoC)
 	{
+		this._horizontalSeparators = new ArrayList<>();
+		this._verticalSeparators = new ArrayList<>();
+		setPDoC(pDoC);
+	}
+
+	public VisualStructureConstructor(VipsBlock vipsBlocks)
+	{
+		this._horizontalSeparators = new ArrayList<>();
+		this._verticalSeparators = new ArrayList<>();
 		this._vipsBlocks = vipsBlocks;
-		this._horizontalSeparators = horizontalSeparators;
-		this._verticalSeparators = vericalSeparators;
+	}
+
+	public VisualStructureConstructor(VipsBlock vipsBlocks, int pDoC)
+	{
+		this._horizontalSeparators = new ArrayList<>();
+		this._verticalSeparators = new ArrayList<>();
+		this._vipsBlocks = vipsBlocks;
+		setPDoC(pDoC);
+	}
+
+	public void setPDoC(int pDoC)
+	{
+		if (pDoC <= 0 || pDoC> 11)
+		{
+			System.err.println("pDoC value must be between 1 and 11! Not " + pDoC + "!");
+			return;
+		}
+		else
+		{
+			_pDoC = pDoC;
+		}
+	}
+
+	public void setGraphicsOutput(boolean enabled)
+	{
+		this._graphicsOutput = enabled;
 	}
 
 	public void constructVisualStructure()
 	{
+		_iteration++;
+
 		List<VisualStructure> results = new ArrayList<>();
 
 		//construct visual structure with visual blocks and horizontal separators
@@ -58,7 +95,7 @@ public class VisualStructureConstructor {
 			detector.setCleanUpSeparators(true);
 			detector.detectHorizontalSeparators();
 			this._horizontalSeparators = detector.getHorizontalSeparators();
-			detector.setCleanUpSeparators(false);
+			Collections.sort(_horizontalSeparators);
 
 			_visualStructure = new VisualStructure();
 			_visualStructure.setId("1");
@@ -115,6 +152,8 @@ public class VisualStructureConstructor {
 			else
 				detector = new VipsSeparatorNonGraphicsDetector(_pageWidth, _pageHeight);
 			//detect vertical separators for each horizontal block
+			if (_iteration == 1)
+				detector.setCleanUpSeparators(true);
 			detector.setVipsBlock(_vipsBlocks);
 			detector.setVisualBlocks(childVisualStructure.getNestedBlocks());
 			detector.detectVerticalSeparators();
@@ -137,30 +176,6 @@ public class VisualStructureConstructor {
 		{
 			exportSeparators();
 		}
-		_iteration++;
-	}
-
-	private void exportSeparators()
-	{
-		VipsSeparatorGraphicsDetector detector = new VipsSeparatorGraphicsDetector(_pageWidth, _pageHeight);
-		List<Separator> allSeparators = new ArrayList<>();
-
-		getAllHorizontalSeparators(_visualStructure, allSeparators);
-		Collections.sort(allSeparators);
-
-		detector.setHorizontalSeparators(allSeparators);
-		detector.exportHorizontalSeparatorsToImage(_iteration);
-
-		allSeparators.clear();
-
-		getAllVerticalSeparators(_visualStructure, allSeparators);
-		Collections.sort(allSeparators);
-
-		detector.setVerticalSeparators(allSeparators);
-		detector.exportVerticalSeparatorsToImage(_iteration);
-
-		detector.setVisualBlocks(_visualBlocks);
-		detector.exportAllToImage(_iteration);
 	}
 
 	private void constructWithHorizontalSeparators(VisualStructure actualStructure)
@@ -252,31 +267,13 @@ public class VisualStructureConstructor {
 
 		List<Separator> allSeparatorsInBlock = new ArrayList<>();
 		allSeparatorsInBlock.addAll(_horizontalSeparators);
-		allSeparatorsInBlock.addAll(actualStructure.getHorizontalSeparators());
 
-		for (VisualStructure visualStructure : actualStructure.getChildrenVisualStructures())
+		for (VisualStructure vs : actualStructure.getChildrenVisualStructures())
 		{
-			for (Separator separator : allSeparatorsInBlock)
-			{
-				if (separator.endPoint == visualStructure.getY() - 1)
-					visualStructure.addHorizontalSeparator(separator);
-
-				if (separator.startPoint == visualStructure.getY() + visualStructure.getHeight() + 1)
-					visualStructure.addHorizontalSeparator(separator);
-			}
+			vs.getHorizontalSeparators().clear();
 		}
 
-		for (VisualStructure visualStructure : actualStructure.getChildrenVisualStructures())
-		{
-			for (Separator separator : actualStructure.getVerticalSeparators())
-			{
-				if (separator.endPoint == visualStructure.getX() - 1)
-					visualStructure.addVerticalSeparator(separator);
-
-				if (separator.startPoint == visualStructure.getX() + visualStructure.getWidth() + 1)
-					visualStructure.addVerticalSeparator(separator);
-			}
-		}
+		actualStructure.addHorizontalSeparators(_horizontalSeparators);
 	}
 
 	private void constructWithVerticalSeparators(VisualStructure actualStructure)
@@ -287,27 +284,27 @@ public class VisualStructureConstructor {
 			return;
 		}
 
-		VisualStructure topVisualStructure = null;
-		VisualStructure bottomVisualStructure =  null;
+		VisualStructure leftVisualStructure = null;
+		VisualStructure rightVisualStructure =  null;
 		List<VipsBlock> nestedBlocks =  null;
 
 		for (Separator separator : _verticalSeparators)
 		{
 			if (actualStructure.getChildrenVisualStructures().size() == 0)
 			{
-				topVisualStructure = new VisualStructure();
-				topVisualStructure.setX(actualStructure.getX());
-				topVisualStructure.setY(actualStructure.getY());
-				topVisualStructure.setHeight(actualStructure.getHeight());
-				topVisualStructure.setWidth((separator.startPoint-1)-actualStructure.getX());
-				actualStructure.addChild(topVisualStructure);
+				leftVisualStructure = new VisualStructure();
+				leftVisualStructure.setX(actualStructure.getX());
+				leftVisualStructure.setY(actualStructure.getY());
+				leftVisualStructure.setHeight(actualStructure.getHeight());
+				leftVisualStructure.setWidth((separator.startPoint-1)-actualStructure.getX());
+				actualStructure.addChild(leftVisualStructure);
 
-				bottomVisualStructure = new VisualStructure();
-				bottomVisualStructure.setX(separator.endPoint+1);
-				bottomVisualStructure.setY(actualStructure.getY());
-				bottomVisualStructure.setHeight(actualStructure.getHeight());
-				bottomVisualStructure.setWidth((actualStructure.getWidth()+actualStructure.getX()) - separator.endPoint-1);
-				actualStructure.addChild(bottomVisualStructure);
+				rightVisualStructure = new VisualStructure();
+				rightVisualStructure.setX(separator.endPoint+1);
+				rightVisualStructure.setY(actualStructure.getY());
+				rightVisualStructure.setHeight(actualStructure.getHeight());
+				rightVisualStructure.setWidth((actualStructure.getWidth()+actualStructure.getX()) - separator.endPoint-1);
+				actualStructure.addChild(rightVisualStructure);
 
 				nestedBlocks = actualStructure.getNestedBlocks();
 			}
@@ -319,21 +316,21 @@ public class VisualStructureConstructor {
 					if (separator.startPoint >= childVisualStructure.getX() &&
 							separator.endPoint <= (childVisualStructure.getX() + childVisualStructure.getWidth()))
 					{
-						topVisualStructure = new VisualStructure();
-						topVisualStructure.setX(childVisualStructure.getX());
-						topVisualStructure.setY(childVisualStructure.getY());
-						topVisualStructure.setHeight(childVisualStructure.getHeight());
-						topVisualStructure.setWidth((separator.startPoint-1)-childVisualStructure.getX());
+						leftVisualStructure = new VisualStructure();
+						leftVisualStructure.setX(childVisualStructure.getX());
+						leftVisualStructure.setY(childVisualStructure.getY());
+						leftVisualStructure.setHeight(childVisualStructure.getHeight());
+						leftVisualStructure.setWidth((separator.startPoint-1)-childVisualStructure.getX());
 						int index = actualStructure.getChildrenVisualStructures().indexOf(childVisualStructure);
-						actualStructure.addChildAt(topVisualStructure, index);
+						actualStructure.addChildAt(leftVisualStructure, index);
 
-						bottomVisualStructure = new VisualStructure();
-						bottomVisualStructure.setX(separator.endPoint+1);
-						bottomVisualStructure.setY(childVisualStructure.getY());
-						bottomVisualStructure.setHeight(childVisualStructure.getHeight());
+						rightVisualStructure = new VisualStructure();
+						rightVisualStructure.setX(separator.endPoint+1);
+						rightVisualStructure.setY(childVisualStructure.getY());
+						rightVisualStructure.setHeight(childVisualStructure.getHeight());
 						int width = (childVisualStructure.getWidth()+childVisualStructure.getX())-separator.endPoint-1;
-						bottomVisualStructure.setWidth(width);
-						actualStructure.addChildAt(bottomVisualStructure, index+1);
+						rightVisualStructure.setWidth(width);
+						actualStructure.addChildAt(rightVisualStructure, index+1);
 
 						oldStructure = childVisualStructure;
 						break;
@@ -343,20 +340,21 @@ public class VisualStructureConstructor {
 				actualStructure.getChildrenVisualStructures().remove(oldStructure);
 			}
 
-			if (topVisualStructure == null || bottomVisualStructure == null)
+			if (leftVisualStructure == null || rightVisualStructure == null)
 				return;
 
 			for (VipsBlock vipsBlock : nestedBlocks)
 			{
 				if (vipsBlock.getBox().getAbsoluteContentX() <= separator.startPoint)
-					topVisualStructure.addNestedBlock(vipsBlock);
+					leftVisualStructure.addNestedBlock(vipsBlock);
 				else
-					bottomVisualStructure.addNestedBlock(vipsBlock);
+					rightVisualStructure.addNestedBlock(vipsBlock);
 			}
 
-			topVisualStructure = null;
-			bottomVisualStructure = null;
+			leftVisualStructure = null;
+			rightVisualStructure = null;
 		}
+
 		// set id for visual structures
 		int iterator = 1;
 		for (VisualStructure visualStructure : actualStructure.getChildrenVisualStructures())
@@ -367,31 +365,36 @@ public class VisualStructureConstructor {
 
 		List<Separator> allSeparatorsInBlock = new ArrayList<>();
 		allSeparatorsInBlock.addAll(_verticalSeparators);
-		allSeparatorsInBlock.addAll(actualStructure.getVerticalSeparators());
 
-		for (VisualStructure visualStructure : actualStructure.getChildrenVisualStructures())
+		for (VisualStructure vs : actualStructure.getChildrenVisualStructures())
 		{
-			for (Separator separator : allSeparatorsInBlock)
-			{
-				if (separator.endPoint == visualStructure.getX() - 1)
-					visualStructure.addVerticalSeparator(separator);
-
-				if (separator.startPoint == visualStructure.getX() + visualStructure.getWidth() + 1)
-					visualStructure.addVerticalSeparator(separator);
-			}
+			vs.getVerticalSeparators().clear();
 		}
 
-		for (VisualStructure visualStructure : actualStructure.getChildrenVisualStructures())
-		{
-			for (Separator separator : actualStructure.getHorizontalSeparators())
-			{
-				if (separator.endPoint == visualStructure.getY() - 1)
-					visualStructure.addHorizontalSeparator(separator);
+		actualStructure.addVerticalSeparators(_verticalSeparators);
+	}
 
-				if (separator.startPoint == visualStructure.getY() + visualStructure.getHeight() + 1)
-					visualStructure.addHorizontalSeparator(separator);
-			}
-		}
+	private void exportSeparators()
+	{
+		VipsSeparatorGraphicsDetector detector = new VipsSeparatorGraphicsDetector(_pageWidth, _pageHeight);
+		List<Separator> allSeparators = new ArrayList<>();
+
+		getAllHorizontalSeparators(_visualStructure, allSeparators);
+		Collections.sort(allSeparators);
+
+		detector.setHorizontalSeparators(allSeparators);
+		detector.exportHorizontalSeparatorsToImage(_iteration);
+
+		allSeparators.clear();
+
+		getAllVerticalSeparators(_visualStructure, allSeparators);
+		Collections.sort(allSeparators);
+
+		detector.setVerticalSeparators(allSeparators);
+		detector.exportVerticalSeparatorsToImage(_iteration);
+
+		detector.setVisualBlocks(_visualBlocks);
+		detector.exportAllToImage(_iteration);
 	}
 
 	public void setPageSize(int width, int height)
@@ -416,14 +419,14 @@ public class VisualStructureConstructor {
 		return _visualStructure;
 	}
 
-	private void getVisualBlocks(VipsBlock vipsBlock, List<VipsBlock> results)
+	private void findVisualBlocks(VipsBlock vipsBlock, List<VipsBlock> results)
 	{
 		if (vipsBlock.isVisualBlock())
 			results.add(vipsBlock);
 
 		for (VipsBlock child : vipsBlock.getChildren())
 		{
-			getVisualBlocks(child, results);
+			findVisualBlocks(child, results);
 		}
 	}
 
@@ -435,8 +438,13 @@ public class VisualStructureConstructor {
 		this._vipsBlocks = vipsBlocks;
 
 		_visualBlocks = new ArrayList<>();
-		getVisualBlocks(vipsBlocks, _visualBlocks);
+		findVisualBlocks(vipsBlocks, _visualBlocks);
 
+	}
+
+	public List<VipsBlock> getVisualBlocks()
+	{
+		return _visualBlocks;
 	}
 
 	/**
@@ -504,15 +512,17 @@ public class VisualStructureConstructor {
 			visualStructure.clearNestedBlocks();
 			for (VipsBlock visualBlock : _visualBlocks)
 			{
+
+
 				if (visualBlock.getBox().getAbsoluteContentX() >= visualStructure.getX() &&
 						visualBlock.getBox().getAbsoluteContentX() <= (visualStructure.getX() + visualStructure.getWidth()))
 				{
 					if (visualBlock.getBox().getAbsoluteContentY() >= visualStructure.getY() &&
 							visualBlock.getBox().getAbsoluteContentY() <= (visualStructure.getY() + visualStructure.getHeight()))
 					{
-						visualStructure.addNestedBlock(visualBlock);
+						if (visualBlock.getBox().getContentHeight() != 0 && visualBlock.getBox().getContentWidth() != 0)
+							visualStructure.addNestedBlock(visualBlock);
 					}
-
 				}
 			}
 			if (visualStructure.getNestedBlocks().size() == 0)
@@ -556,14 +566,6 @@ public class VisualStructureConstructor {
 	{
 		result.addAll(visualStructure.getHorizontalSeparators());
 
-		for (Separator sep : visualStructure.getHorizontalSeparators())
-		{
-			if ((sep.endPoint - sep.startPoint + 1) == 0 || (sep.endPoint - sep.startPoint + 1) == -1)
-			{
-				System.err.println("h  " + sep.startPoint + " " + sep.endPoint + " " + " " + sep.weight + " " + visualStructure.getId());
-			}
-		}
-
 		for (VisualStructure child : visualStructure.getChildrenVisualStructures())
 		{
 			findAllHorizontalSeparators(child, result);
@@ -574,13 +576,6 @@ public class VisualStructureConstructor {
 	{
 		result.addAll(visualStructure.getVerticalSeparators());
 
-		for (Separator sep : visualStructure.getVerticalSeparators())
-		{
-			if ((sep.endPoint - sep.startPoint + 1) == 0 || (sep.endPoint - sep.startPoint + 1) == -1)
-			{
-				System.err.println("v   " + sep.startPoint + " " + sep.endPoint + " " + " " + sep.weight + " " + visualStructure.getId());
-			}
-		}
 		for (VisualStructure child : visualStructure.getChildrenVisualStructures())
 		{
 			findAllVerticalSeparators(child, result);
@@ -589,66 +584,42 @@ public class VisualStructureConstructor {
 
 	private void removeDuplicates(List<Separator> separators)
 	{
-		//TODO nejspis neni potreba
 		HashSet<Separator> hashSet = new HashSet<Separator>(separators);
 		separators.clear();
 		separators.addAll(hashSet);
 	}
 
-	public void setGraphicsOutput(boolean value)
+	private int getDoCValue(int value)
 	{
-		this._graphicsOutput = value;
+		if (value == 0)
+			return _maxDoC;
+
+		return ((_maxDoC + 1) - value);
 	}
 
-	private int getInverseValue(int value)
-	{
-		if (value == 11)
-			return 1;
-		if (value == 10)
-			return 2;
-		if (value == 9)
-			return 3;
-		if (value == 8)
-			return 4;
-		if (value == 7)
-			return 5;
-		if (value == 6)
-			return 6;
-		if (value == 5)
-			return 7;
-		if (value == 4)
-			return 8;
-		if (value == 3)
-			return 9;
-		if (value == 2)
-			return 10;
-		if (value == 1)
-			return 11;
-
-		return 0;
-	}
-
+	/**
+	 * Normalizes separators weights with linear normalization
+	 */
 	public void normalizeSeparators()
 	{
 		List<Separator> separators = new ArrayList<>();
 
 		getAllSeparators(_visualStructure, separators);
-		separators.add(new Separator(10, 10));
-		separators.get(separators.size()-1).weight += _pageWidth / 10;
-		separators.add(new Separator(10, 10));
-		separators.get(separators.size()-1).weight += _pageHeight / 10;
+		Separator newSep = new Separator(0, _pageHeight);
 		Collections.sort(separators);
-
-		System.out.println(separators.size());
+		newSep.weight = 29;
+		separators.add(newSep);
 
 		double minWeight = separators.get(0).weight;
 		double maxWeight = separators.get(separators.size()-1).weight;
 
+		_pDoC = 11;
+
 		for (Separator separator : separators)
 		{
-			double normalizedValue = (separator.weight - minWeight) / (maxWeight - minWeight) * (11 - 4) + 4;
-			separator.normalizedWeight = getInverseValue((int) Math.round(normalizedValue));
-			System.out.println(separator.weight + " " + separator.normalizedWeight);
+			double normalizedValue = (separator.weight - minWeight) / (maxWeight - minWeight) * (_pDoC - 1) + 1;
+			separator.normalizedWeight = getDoCValue((int) Math.ceil(normalizedValue));
+			System.out.println(separator.startPoint + "\t" + separator.endPoint + "\t" + (separator.endPoint - separator.startPoint + 1) + "\t" + separator.weight + "\t" + separator.normalizedWeight + "\t" + normalizedValue);
 		}
 
 		updateDoC(_visualStructure);
@@ -656,6 +627,10 @@ public class VisualStructureConstructor {
 		_visualStructure.setDoC(1);
 	}
 
+	/**
+	 * Updates DoC of all visual structures nodes
+	 * @param visualStructure Visual Structure
+	 */
 	private void updateDoC(VisualStructure visualStructure)
 	{
 		for (VisualStructure child : visualStructure.getChildrenVisualStructures())
@@ -665,63 +640,4 @@ public class VisualStructureConstructor {
 
 		visualStructure.updateToNormalizedDoC();
 	}
-
-	private double getStdDeviation(List<Separator> separators)
-	{
-		double meanValue = 0.0;
-		double stddev = 0.0;
-		List<Double> deviations = new ArrayList<>();
-		List<Double> squaredDeviations = new ArrayList<Double>();
-		double sum = 0.0;
-
-		for (Separator separator : separators)
-		{
-			meanValue += separator.weight;
-		}
-
-		meanValue /= separators.size();
-
-		for (Separator separator : separators)
-		{
-			deviations.add(separator.weight - meanValue);
-		}
-
-		for (Double deviation : deviations)
-		{
-			squaredDeviations.add(deviation * deviation);
-		}
-
-		for (Double squaredDeviation : squaredDeviations)
-		{
-			sum += squaredDeviation;
-		}
-
-		stddev = Math.sqrt(sum/squaredDeviations.size());
-
-		return stddev;
-	}
-
-	public void zScoreNormalization()
-	{
-		List<Separator> separators = new ArrayList<>();
-		getAllSeparators(_visualStructure, separators);
-
-		double meanValue = 0.0;
-
-		for (Separator separator : separators)
-		{
-			meanValue += separator.weight;
-		}
-		meanValue /= separators.size();
-
-		System.out.println(meanValue);
-
-		for (Separator separator : separators)
-		{
-			double normalizedValue = (separator.weight - meanValue) / getStdDeviation(separators);
-			separator.normalizedWeight = getInverseValue((int) Math.round(normalizedValue));
-			System.out.println(normalizedValue + "    " + separator.weight + " " + separator.normalizedWeight);
-		}
-	}
-
 }

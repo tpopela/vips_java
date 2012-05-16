@@ -103,7 +103,11 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	@Override
 	public void fillPool()
 	{
-		fillPoolWithBlocks(_vipsBlocks);
+		createPool();
+		if (_vipsBlocks != null)
+			fillPoolWithBlocks(_vipsBlocks);
+		else
+			fillPoolWithBlocks(_visualBlocks);
 	}
 
 	/**
@@ -403,6 +407,8 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 				_horizontalSeparators.remove(separator);
 			if (separator.endPoint == _image.getHeight())
 				_horizontalSeparators.remove(separator);
+			if (separator.endPoint - separator.startPoint == 0)
+				_horizontalSeparators.remove(separator);
 		}
 
 		if (_cleanSeparators)
@@ -439,6 +445,8 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 				_verticalSeparators.remove(separator);
 			if (separator.endPoint == _image.getWidth())
 				_verticalSeparators.remove(separator);
+			if (separator.endPoint - separator.startPoint == 0)
+				_verticalSeparators.remove(separator);
 		}
 
 		if (_cleanSeparators)
@@ -456,7 +464,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 		{
 			int width = separator.endPoint - separator.startPoint + 1;
 
-			if (width < 10)
+			if (width <= 10)
 				separators.remove(separator);
 		}
 	}
@@ -507,13 +515,17 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	private void ruleOne(Separator separator)
 	{
 		int width = separator.endPoint - separator.startPoint + 1;
-		int weight = 0;
-		if (width < 10)
-			weight = 1;
-		else
-			weight = (width / 10);
 
-		separator.weight += weight;
+		if (width > 35 )
+			separator.weight += 8;
+		if (width > 25 && width <= 35)
+			separator.weight += 6;
+		else if (width > 15 && width <= 25)
+			separator.weight += 4;
+		else if (width > 8 && width <= 15)
+			separator.weight += 2;
+		else
+			separator.weight += 1;
 	}
 
 	/**
@@ -525,9 +537,9 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	{
 		List<VipsBlock> overlappedElements = new ArrayList<VipsBlock>();
 		if (horizontal)
-			findHorizontalOverlappedElements(separator, _vipsBlocks, overlappedElements);
+			findHorizontalOverlappedElements(separator, overlappedElements);
 		else
-			findVerticalOverlappedElements(separator, _vipsBlocks, overlappedElements);
+			findVerticalOverlappedElements(separator, overlappedElements);
 
 		if (overlappedElements.size() == 0)
 			return;
@@ -548,32 +560,32 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	 * @param vipsBlock Visual block corresponding to element
 	 * @param result Elements, that we found
 	 */
-	private void findHorizontalOverlappedElements(Separator separator,
-			VipsBlock vipsBlock, List<VipsBlock> result)
+	private void findHorizontalOverlappedElements(Separator separator, List<VipsBlock> result)
 	{
-		int topEdge = vipsBlock.getBox().getAbsoluteContentY();
-		int bottomEdge = topEdge + vipsBlock.getBox().getContentHeight();
-
-		// two upper edges of element are overlapped with separator
-		if (topEdge > separator.startPoint && topEdge < separator.endPoint && bottomEdge > separator.endPoint)
+		for (VipsBlock vipsBlock : _visualBlocks)
 		{
-			result.add(vipsBlock);
-		}
+			int topEdge = vipsBlock.getBox().getAbsoluteContentY();
+			int bottomEdge = topEdge + vipsBlock.getBox().getContentHeight();
 
-		// two bottom edges of element are overlapped with separator
-		if (topEdge < separator.startPoint && bottomEdge > separator.startPoint && bottomEdge < separator.endPoint)
-		{
-			result.add(vipsBlock);
-		}
+			// two upper edges of element are overlapped with separator
+			if (topEdge > separator.startPoint && topEdge < separator.endPoint && bottomEdge > separator.endPoint)
+			{
+				result.add(vipsBlock);
+			}
 
-		// all edges of element are overlapped with separator
-		if (topEdge >= separator.startPoint && bottomEdge <= separator.endPoint)
-		{
-			result.add(vipsBlock);
-		}
+			// two bottom edges of element are overlapped with separator
+			if (topEdge < separator.startPoint && bottomEdge > separator.startPoint && bottomEdge < separator.endPoint)
+			{
+				result.add(vipsBlock);
+			}
 
-		for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
-			findHorizontalOverlappedElements(separator, vipsBlockChild, result);
+			// all edges of element are overlapped with separator
+			if (topEdge >= separator.startPoint && bottomEdge <= separator.endPoint)
+			{
+				result.add(vipsBlock);
+			}
+
+		}
 	}
 
 	/**
@@ -582,32 +594,31 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	 * @param vipsBlock Visual block corresponding to element
 	 * @param result Elements, that we found
 	 */
-	private void findVerticalOverlappedElements(Separator separator,
-			VipsBlock vipsBlock, List<VipsBlock> result)
+	private void findVerticalOverlappedElements(Separator separator, List<VipsBlock> result)
 	{
-		int leftEdge = vipsBlock.getBox().getAbsoluteContentX();
-		int rightEdge = leftEdge + vipsBlock.getBox().getContentWidth();
-
-		// two left edges of element are overlapped with separator
-		if (leftEdge > separator.startPoint && leftEdge < separator.endPoint && rightEdge > separator.endPoint)
+		for (VipsBlock vipsBlock : _visualBlocks)
 		{
-			result.add(vipsBlock);
-		}
+			int leftEdge = vipsBlock.getBox().getAbsoluteContentX();
+			int rightEdge = leftEdge + vipsBlock.getBox().getContentWidth();
 
-		// two right edges of element are overlapped with separator
-		if (leftEdge < separator.startPoint && rightEdge > separator.startPoint && rightEdge < separator.endPoint)
-		{
-			result.add(vipsBlock);
-		}
+			// two left edges of element are overlapped with separator
+			if (leftEdge > separator.startPoint && leftEdge < separator.endPoint && rightEdge > separator.endPoint)
+			{
+				result.add(vipsBlock);
+			}
 
-		// all edges of element are overlapped with separator
-		if (leftEdge >= separator.startPoint && rightEdge <= separator.endPoint)
-		{
-			result.add(vipsBlock);
-		}
+			// two right edges of element are overlapped with separator
+			if (leftEdge < separator.startPoint && rightEdge > separator.startPoint && rightEdge < separator.endPoint)
+			{
+				result.add(vipsBlock);
+			}
 
-		for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
-			findVerticalOverlappedElements(separator, vipsBlockChild, result);
+			// all edges of element are overlapped with separator
+			if (leftEdge >= separator.startPoint && rightEdge <= separator.endPoint)
+			{
+				result.add(vipsBlock);
+			}
+		}
 	}
 
 	/**
@@ -622,20 +633,28 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 		// for vertical is represents elements on right side
 		List<VipsBlock> bottomAdjacentElements = new ArrayList<VipsBlock>();
 		if (horizontal)
-			findHorizontalAdjacentBlocks(separator, _vipsBlocks, topAdjacentElements, bottomAdjacentElements);
+			findHorizontalAdjacentBlocks(separator, topAdjacentElements, bottomAdjacentElements);
 		else
-			findVerticalAdjacentBlocks(separator, _vipsBlocks, topAdjacentElements, bottomAdjacentElements);
+			findVerticalAdjacentBlocks(separator, topAdjacentElements, bottomAdjacentElements);
 
 		if (topAdjacentElements.size() < 1 || bottomAdjacentElements.size() < 1)
 			return;
+
+		boolean weightIncreased = false;
 
 		for (VipsBlock top : topAdjacentElements)
 		{
 			for (VipsBlock bottom : bottomAdjacentElements)
 			{
 				if (!top.getBgColor().equals(bottom.getBgColor()))
+				{
 					separator.weight += 2;
+					weightIncreased = true;
+					break;
+				}
 			}
+			if (weightIncreased)
+				break;
 		}
 	}
 
@@ -646,10 +665,9 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	 * @param resultTop Elements, that we found on top side of separator
 	 * @param resultBottom Elements, that we found on bottom side side of separator
 	 */
-	private void findHorizontalAdjacentBlocks(Separator separator,
-			VipsBlock vipsBlock, List<VipsBlock> resultTop, List<VipsBlock> resultBottom)
+	private void findHorizontalAdjacentBlocks(Separator separator, List<VipsBlock> resultTop, List<VipsBlock> resultBottom)
 	{
-		if (vipsBlock.isVisualBlock())
+		for (VipsBlock vipsBlock : _visualBlocks)
 		{
 			int topEdge = vipsBlock.getBox().getAbsoluteContentY();
 			int bottomEdge = topEdge + vipsBlock.getBox().getContentHeight();
@@ -666,9 +684,6 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 				resultTop.add(0, vipsBlock);
 			}
 		}
-
-		for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
-			findHorizontalAdjacentBlocks(separator, vipsBlockChild, resultTop, resultBottom);
 	}
 
 	/**
@@ -678,10 +693,9 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	 * @param resultLeft Elements, that we found on left side of separator
 	 * @param resultRight Elements, that we found on right side side of separator
 	 */
-	private void findVerticalAdjacentBlocks(Separator separator,
-			VipsBlock vipsBlock, List<VipsBlock> resultLeft, List<VipsBlock> resultRight)
+	private void findVerticalAdjacentBlocks(Separator separator, List<VipsBlock> resultLeft, List<VipsBlock> resultRight)
 	{
-		if (vipsBlock.isVisualBlock())
+		for (VipsBlock vipsBlock : _visualBlocks)
 		{
 			int leftEdge = vipsBlock.getBox().getAbsoluteContentX() + 1;
 			int rightEdge = leftEdge + vipsBlock.getBox().getContentWidth();
@@ -698,8 +712,6 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 				resultLeft.add(0, vipsBlock);
 			}
 		}
-		for (VipsBlock vipsBlockChild : vipsBlock.getChildren())
-			findVerticalAdjacentBlocks(separator, vipsBlockChild, resultLeft, resultRight);
 	}
 
 	/**
@@ -716,7 +728,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 		List<VipsBlock> topAdjacentElements = new ArrayList<VipsBlock>();
 		List<VipsBlock> bottomAdjacentElements = new ArrayList<VipsBlock>();
 
-		findHorizontalAdjacentBlocks(separator, _vipsBlocks, topAdjacentElements, bottomAdjacentElements);
+		findHorizontalAdjacentBlocks(separator, topAdjacentElements, bottomAdjacentElements);
 
 		if (topAdjacentElements.size() < 1 || bottomAdjacentElements.size() < 1)
 			return;
@@ -730,7 +742,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 				int diff = Math.abs(top.getFontSize() - bottom.getFontSize());
 				if (diff != 0)
 				{
-					separator.weight += diff;
+					separator.weight += 2;
 					weightIncreased = true;
 					break;
 				}
@@ -754,7 +766,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 			{
 				if (top.getFontSize() < bottom.getFontSize())
 				{
-					separator.weight += top.getFontSize() - bottom.getFontSize();
+					separator.weight += 2;
 					weightIncreased = true;
 					break;
 				}
@@ -775,7 +787,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 		List<VipsBlock> topAdjacentElements = new ArrayList<VipsBlock>();
 		List<VipsBlock> bottomAdjacentElements = new ArrayList<VipsBlock>();
 
-		findHorizontalAdjacentBlocks(separator, _vipsBlocks, topAdjacentElements, bottomAdjacentElements);
+		findHorizontalAdjacentBlocks(separator, topAdjacentElements, bottomAdjacentElements);
 
 		if (topAdjacentElements.size() < 1 || bottomAdjacentElements.size() < 1)
 			return;

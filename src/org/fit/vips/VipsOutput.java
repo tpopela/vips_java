@@ -30,9 +30,13 @@ public final class VipsOutput {
 	private boolean _escapeOutput = true;
 	private boolean _includeBlocks = false;
 	private int _pDoC = 0;
+	private int _order = 1;
 
 	public VipsOutput() {
+	}
 
+	public VipsOutput(int pDoC) {
+		this.setPDoC(pDoC);
 	}
 
 	private String getSource(Element node)
@@ -75,11 +79,12 @@ public final class VipsOutput {
 		layoutNode.setAttribute("ObjectRectWidth", String.valueOf(visualStructure.getWidth()));
 		layoutNode.setAttribute("ObjectRectHeight", String.valueOf(visualStructure.getHeight()));
 		layoutNode.setAttribute("ID", visualStructure.getId());
-		layoutNode.setAttribute("order", String.valueOf(visualStructure.getOrder()));
+		layoutNode.setAttribute("order", String.valueOf(_order));
+
+		_order++;
 
 		if (_pDoC >= visualStructure.getDoC())
 		{
-
 			if (_includeBlocks)
 			{
 				if (visualStructure.getChildrenVisualStructures().size() == 0)
@@ -103,7 +108,7 @@ public final class VipsOutput {
 							else
 								src += elementBox.getText();
 
-							content += elementBox.getText();
+							content += elementBox.getText() + " ";
 
 							layoutNode.setAttribute("innerHTML" + numberOfBlock, src);
 							layoutNode.setAttribute("innerText" + numberOfBlock, content);
@@ -135,7 +140,7 @@ public final class VipsOutput {
 							else
 								src += elementBox.getText();
 
-							content += elementBox.getText();
+							content += elementBox.getText() + " ";
 
 						}
 						layoutNode.setAttribute("SRC", src);
@@ -145,9 +150,6 @@ public final class VipsOutput {
 			}
 
 			parentNode.appendChild(layoutNode);
-
-			//		if (_pDoC < visualStructure.getDoC())
-			//			return;
 
 			for (VisualStructure child : visualStructure.getChildrenVisualStructures())
 				writeVisualBlocks(layoutNode, child);
@@ -171,7 +173,7 @@ public final class VipsOutput {
 					else
 						src += elementBox.getText();
 
-					content += elementBox.getText();
+					content += elementBox.getText() + " ";
 
 				}
 				layoutNode.setAttribute("SRC", src);
@@ -198,7 +200,8 @@ public final class VipsOutput {
 			vipsElement.setAttribute("PageTitle", pageTitle);
 			vipsElement.setAttribute("WindowWidth", String.valueOf(pageViewport.getContentWidth()));
 			vipsElement.setAttribute("WindowHeight", String.valueOf(pageViewport.getContentHeight()));
-			vipsElement.setAttribute("PageRectTop", String.valueOf(pageViewport.getContentY()));
+			vipsElement.setAttribute("PageRectTop", String.valueOf(pageViewport.getAbsoluteContentY()));
+			vipsElement.setAttribute("PageRectLeft", String.valueOf(pageViewport.getAbsoluteContentX()));
 			vipsElement.setAttribute("PageRectWidth", String.valueOf(pageViewport.getContentWidth()));
 			vipsElement.setAttribute("PageRectHeight", String.valueOf(pageViewport.getContentHeight()));
 			vipsElement.setAttribute("neworder", "0");
@@ -252,6 +255,14 @@ public final class VipsOutput {
 
 	public void setPDoC(int pDoC)
 	{
-		_pDoC = pDoC;
+		if (pDoC <= 0 || pDoC> 11)
+		{
+			System.err.println("pDoC value must be between 1 and 11! Not " + pDoC + "!");
+			return;
+		}
+		else
+		{
+			_pDoC = pDoC;
+		}
 	}
 }

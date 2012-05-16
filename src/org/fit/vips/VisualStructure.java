@@ -19,7 +19,7 @@ public class VisualStructure {
 	private int _height = 0;
 	private int _x = 0;
 	private int _y = 0;
-	private int _doC = -1;
+	private int _doC = 12;
 	private int _containImg = -1;
 	private int _containP = -1;
 	private int _textLength = -1;
@@ -67,6 +67,11 @@ public class VisualStructure {
 	public void removeNestedBlockAt(int index)
 	{
 		this._nestedBlocks.remove(index);
+	}
+
+	public void removeChild(VisualStructure visualStructure)
+	{
+		this._childrenVisualStructures.remove(visualStructure);
 	}
 
 	public void addChild(VisualStructure visualStructure)
@@ -117,6 +122,15 @@ public class VisualStructure {
 	public void addHorizontalSeparator(Separator horizontalSeparator)
 	{
 		this._horizontalSeparators.add(horizontalSeparator);
+
+	}
+
+	/**
+	 * @param _horizontalSeparators the _horizontalSeparators to set
+	 */
+	public void addHorizontalSeparators(List<Separator> horizontalSeparators)
+	{
+		this._horizontalSeparators.addAll(horizontalSeparators);
 
 	}
 
@@ -223,33 +237,6 @@ public class VisualStructure {
 
 	public void updateToNormalizedDoC()
 	{
-		_doC = 100;
-
-		for (VisualStructure visualStructure : _childrenVisualStructures)
-		{
-			for (Separator separator : visualStructure.getHorizontalSeparators())
-			{
-				if (separator.normalizedWeight < _doC)
-					_doC = separator.normalizedWeight;
-			}
-			for (Separator separator : visualStructure.getVerticalSeparators())
-			{
-				if (separator.normalizedWeight < _doC)
-					_doC = separator.normalizedWeight;
-			}
-		}
-
-		if (_childrenVisualStructures.size() == 0)
-		{
-			if (_nestedBlocks.size() == 1)
-			{
-				_doC = _nestedBlocks.get(0).getDoC();
-			}
-			else
-				_doC = 9;
-		}
-
-		/*
 		for (Separator separator : _horizontalSeparators)
 		{
 			if (separator.normalizedWeight < _doC)
@@ -260,7 +247,16 @@ public class VisualStructure {
 		{
 			if (separator.normalizedWeight < _doC)
 				_doC = separator.normalizedWeight;
-		}*/
+		}
+
+		if (_doC == 12)
+		{
+			for (VipsBlock nestedBlock : _nestedBlocks)
+			{
+				if (nestedBlock.getDoC() < _doC)
+					_doC = nestedBlock.getDoC();
+			}
+		}
 	}
 
 	public int containImg()
@@ -402,5 +398,10 @@ public class VisualStructure {
 	public int getOrder()
 	{
 		return _order;
+	}
+
+	public void addVerticalSeparators(List<Separator> verticalSeparators)
+	{
+		this._verticalSeparators.addAll(verticalSeparators);
 	}
 }

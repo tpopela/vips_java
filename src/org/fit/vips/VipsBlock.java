@@ -352,11 +352,12 @@ public class VipsBlock {
 			_tmpSrcIndex++;
 		else
 			_sourceIndex = _tmpSrcIndex;
-
+		/*
 		for (int i = 0; i < node.getChildNodes().getLength(); i++)
 		{
 			setSourceIndex(node.getChildNodes().item(i));
 		}
+		 */
 	}
 
 	public int getSourceIndex()
