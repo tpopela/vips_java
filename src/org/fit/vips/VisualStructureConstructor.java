@@ -23,7 +23,7 @@ public class VisualStructureConstructor {
 	private int _srcOrder = 1;
 	private int _iteration = 0;
 	private int _pDoC = 5;
-	private final int _maxDoC = 11;
+	private static int _maxDoC = 11;
 
 	private boolean _graphicsOutput = true;
 
@@ -238,8 +238,11 @@ public class VisualStructureConstructor {
 						break;
 					}
 				}
-				nestedBlocks = oldStructure.getNestedBlocks();
-				actualStructure.getChildrenVisualStructures().remove(oldStructure);
+				if (oldStructure != null)
+				{
+					nestedBlocks = oldStructure.getNestedBlocks();
+					actualStructure.getChildrenVisualStructures().remove(oldStructure);
+				}
 			}
 
 			if (topVisualStructure == null || bottomVisualStructure == null)
@@ -336,8 +339,11 @@ public class VisualStructureConstructor {
 						break;
 					}
 				}
-				nestedBlocks = oldStructure.getNestedBlocks();
-				actualStructure.getChildrenVisualStructures().remove(oldStructure);
+				if (oldStructure != null)
+				{
+					nestedBlocks = oldStructure.getNestedBlocks();
+					actualStructure.getChildrenVisualStructures().remove(oldStructure);
+				}
 			}
 
 			if (leftVisualStructure == null || rightVisualStructure == null)
