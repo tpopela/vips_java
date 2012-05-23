@@ -11,17 +11,22 @@ import java.util.Collections;
 import java.util.List;
 
 import org.fit.cssbox.layout.TextBox;
-
+/**
+ * Seperators detector (faster than VipsSeparatorGraphicsDetector).
+ * @author v3s
+ *
+ */
 public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 
 	VipsBlock _vipsBlocks = null;
 	List<VipsBlock> _visualBlocks = null;
 	private List<Separator> _horizontalSeparators = null;
 	private List<Separator> _verticalSeparators = null;
-	int _width = 0;
-	int _height = 0;
 
-	private boolean _cleanSeparators = false;
+	private int _width = 0;
+	private int _height = 0;
+
+	private int _cleanSeparatorsTreshold = 0;
 
 	/**
 	 * Defaults constructor.
@@ -50,8 +55,6 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 	/**
 	 * Fills pool with all visual blocks from VIPS blocks.
 	 * 
-	 * @param vipsBlock
-	 *            Visual block
 	 */
 	@Override
 	public void fillPool()
@@ -74,7 +77,6 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 
 	/**
 	 * Gets VIPS block that is used for separators computing.
-	 * @return Visual structure
 	 */
 	@Override
 	public VipsBlock getVipsBlock()
@@ -84,7 +86,7 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 
 	/**
 	 * Sets VIPS block, that will be used for separators computing.
-	 * @param vipsBlock Visual structure
+	 * @param visualBlocks List of visual blocks
 	 */
 	@Override
 	public void setVisualBlocks(List<VipsBlock> visualBlocks)
@@ -118,7 +120,7 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 			for (Separator separator : _verticalSeparators)
 			{
 				// find separator, that intersects with our visual block
-				if (blockStart <= separator.endPoint)
+				if (blockStart < separator.endPoint)
 				{
 					// next there are six relations that the separator and visual block can have
 
@@ -195,6 +197,33 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 								nextSeparator.startPoint = blockEnd + 1;
 								break;
 							}
+							else
+							{
+								List<Separator> tempSeparators = new ArrayList<Separator>();
+								tempSeparators.addAll(_verticalSeparators);
+
+								//remove all separators, that are included in block
+								for (Separator other : tempSeparators)
+								{
+									if (blockStart < other.startPoint && other.endPoint < blockEnd)
+									{
+										_verticalSeparators.remove(other);
+										continue;
+									}
+									if (blockEnd > other.startPoint && blockEnd < other.endPoint)
+									{
+										// change separator start's point coordinate
+										other.startPoint = blockEnd+1;
+										break;
+									}
+									if (blockStart > other.startPoint && blockStart < other.endPoint)
+									{
+										other.endPoint = blockStart-1;
+										continue;
+									}
+								}
+								break;
+							}
 						}
 					}
 					// if separator ends in the middle of block
@@ -221,7 +250,7 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 			for (Separator separator : _horizontalSeparators)
 			{
 				// find separator, that intersects with our visual block
-				if (blockStart <= separator.endPoint)
+				if (blockStart < separator.endPoint)
 				{
 					// next there are six relations that the separator and visual block can have
 
@@ -298,6 +327,33 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 								nextSeparator.startPoint = blockEnd + 1;
 								break;
 							}
+							else
+							{
+								List<Separator> tempSeparators = new ArrayList<Separator>();
+								tempSeparators.addAll(_horizontalSeparators);
+
+								//remove all separators, that are included in block
+								for (Separator other : tempSeparators)
+								{
+									if (blockStart < other.startPoint && other.endPoint < blockEnd)
+									{
+										_horizontalSeparators.remove(other);
+										continue;
+									}
+									if (blockEnd > other.startPoint && blockEnd < other.endPoint)
+									{
+										// change separator start's point coordinate
+										other.startPoint = blockEnd+1;
+										break;
+									}
+									if (blockStart > other.startPoint && blockStart < other.endPoint)
+									{
+										other.endPoint = blockStart-1;
+										continue;
+									}
+								}
+								break;
+							}
 						}
 					}
 					// if separator ends in the middle of block
@@ -336,12 +392,11 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 				_horizontalSeparators.remove(separator);
 			if (separator.endPoint == _height)
 				_horizontalSeparators.remove(separator);
-			if (separator.endPoint - separator.startPoint == 0)
-				_horizontalSeparators.remove(separator);
 		}
 
-		if (_cleanSeparators)
+		if (_cleanSeparatorsTreshold != 0)
 			cleanUpSeparators(_horizontalSeparators);
+
 		computeHorizontalWeights();
 		sortSeparatorsByWeight(_horizontalSeparators);
 	}
@@ -373,11 +428,9 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 				_verticalSeparators.remove(separator);
 			if (separator.endPoint == _width)
 				_verticalSeparators.remove(separator);
-			if (separator.endPoint - separator.startPoint == 0)
-				_verticalSeparators.remove(separator);
 		}
 
-		if (_cleanSeparators)
+		if (_cleanSeparatorsTreshold != 0)
 			cleanUpSeparators(_verticalSeparators);
 		computeVerticalWeights();
 		sortSeparatorsByWeight(_verticalSeparators);
@@ -385,14 +438,14 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 
 	private void cleanUpSeparators(List<Separator> separators)
 	{
-		List<Separator> tempList = new ArrayList<>();
+		List<Separator> tempList = new ArrayList<Separator>();
 		tempList.addAll(separators);
 
 		for (Separator separator : tempList)
 		{
 			int width = separator.endPoint - separator.startPoint + 1;
 
-			if (width <= 10)
+			if (width < _cleanSeparatorsTreshold)
 				separators.remove(separator);
 		}
 	}
@@ -444,7 +497,13 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 	{
 		int width = separator.endPoint - separator.startPoint + 1;
 
-		if (width > 35 )
+		//separator.weight += width;
+
+		if (width > 55 )
+			separator.weight += 12;
+		if (width > 45 && width <= 55)
+			separator.weight += 10;
+		if (width > 35 && width <= 45)
 			separator.weight += 8;
 		if (width > 25 && width <= 35)
 			separator.weight += 6;
@@ -454,6 +513,7 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 			separator.weight += 2;
 		else
 			separator.weight += 1;
+
 	}
 
 	/**
@@ -772,14 +832,17 @@ public class VipsSeparatorNonGraphicsDetector implements VipsSeparatorDetector {
 	}
 
 	@Override
-	public void setCleanUpSeparators(boolean cleanSeparators)
+	public void setCleanUpSeparators(int treshold)
 	{
-		this._cleanSeparators = cleanSeparators;
+		this._cleanSeparatorsTreshold = treshold;
 	}
 
 	@Override
 	public boolean isCleanUpEnabled()
 	{
-		return _cleanSeparators;
+		if (_cleanSeparatorsTreshold == 0)
+			return true;
+
+		return false;
 	}
 }

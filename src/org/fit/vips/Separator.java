@@ -9,7 +9,7 @@ package org.fit.vips;
 import java.awt.Point;
 
 /**
- * Class that represents visual separator
+ * Class that represents visual separator.
  */
 public class Separator implements Comparable<Separator> {
 	public int startPoint = 0;

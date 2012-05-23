@@ -11,9 +11,15 @@ import java.util.List;
 
 import org.fit.cssbox.layout.Box;
 import org.fit.cssbox.layout.ElementBox;
+import org.fit.cssbox.layout.TextBox;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+/**
+ * Class that represents block on page.
+ * @author Tomas Popela
+ *
+ */
 public class VipsBlock {
 
 	//rendered Box, that corresponds to DOM element
@@ -42,10 +48,10 @@ public class VipsBlock {
 
 	private String _bgColor = null;
 
-	private final int _frameSourceIndex = 0;
+	private int _frameSourceIndex = 0;
 	private int _sourceIndex = 0;
 	private int _tmpSrcIndex = 0;
-	private final int _order = 0;
+	private int _order = 0;
 
 
 	//length of text in node
@@ -63,12 +69,20 @@ public class VipsBlock {
 		addChild(node);
 	}
 
+	/**
+	 * Sets block as visual block
+	 * @param isVisualBlock Value
+	 */
 	public void setIsVisualBlock(boolean isVisualBlock)
 	{
 		_isVisualBlock = isVisualBlock;
 		checkProperties();
 	}
 
+	/**
+	 * Checks if block is visual block
+	 * @return True if block if visual block, otherwise false
+	 */
 	public boolean isVisualBlock()
 	{
 		return _isVisualBlock;
@@ -168,26 +182,46 @@ public class VipsBlock {
 		_textLen = vipsBlock.getBox().getText().replaceAll("\n", "").length();
 	}
 
+	/**
+	 * Adds new child to blocks children
+	 * @param child New child
+	 */
 	public void addChild(VipsBlock child)
 	{
 		_children.add(child);
 	}
 
+	/**
+	 * Gets all blocks children
+	 * @return List of children
+	 */
 	public List<VipsBlock> getChildren()
 	{
 		return _children;
 	}
 
+	/**
+	 * Sets block corresponding Box
+	 * @param box Box
+	 */
 	public void setBox(Box box)
 	{
 		this._box = box;
 	}
 
+	/**
+	 * Gets Box corresponding to the block
+	 * @return Box
+	 */
 	public Box getBox()
 	{
 		return _box;
 	}
 
+	/**
+	 * Gets ElementBox corresponding to the block
+	 * @return ElementBox
+	 */
 	public ElementBox getElementBox()
 	{
 		if (_box instanceof ElementBox)
@@ -196,18 +230,27 @@ public class VipsBlock {
 			return null;
 	}
 
+	/**
+	 * Sets block's id
+	 * @param id Id
+	 */
 	public void setId(int id)
 	{
 		this._id = id;
 	}
 
+	/**
+	 * Gets blocks id
+	 * @return Id
+	 */
 	public int getId()
 	{
 		return _id;
 	}
 
 	/**
-	 * @return the _DoC
+	 * Returns block's degree of coherence DoC
+	 * @return Degree of coherence
 	 */
 	public int getDoC()
 	{
@@ -215,8 +258,8 @@ public class VipsBlock {
 	}
 
 	/**
-	 * @param _DoC
-	 *            the _DoC to set
+	 * Sets block;s degree of coherence
+	 * @param doC Degree of coherence
 	 */
 	public void setDoC(int doC)
 	{
@@ -224,7 +267,8 @@ public class VipsBlock {
 	}
 
 	/**
-	 * @return the _isDividable
+	 * Checks if block is dividable
+	 * @return True if is dividable, otherwise false
 	 */
 	public boolean isDividable()
 	{
@@ -232,7 +276,8 @@ public class VipsBlock {
 	}
 
 	/**
-	 * @param _isDividable the _isDividable to set
+	 * Sets dividability of block
+	 * @param isDividable True if is dividable otherwise false
 	 */
 	public void setIsDividable(boolean isDividable)
 	{
@@ -240,7 +285,8 @@ public class VipsBlock {
 	}
 
 	/**
-	 * @return the _alreadyDivided
+	 * Checks if node was already divided
+	 * @return True if was divided, otherwise false
 	 */
 	public boolean isAlreadyDivided()
 	{
@@ -248,43 +294,72 @@ public class VipsBlock {
 	}
 
 	/**
-	 * @param _alreadyDivided the _alreadyDivided to set
+	 * Sets if block was divided
+	 * @param alreadyDivided True if block was divided, otherwise false
 	 */
 	public void setAlreadyDivided(boolean alreadyDivided)
 	{
 		this._alreadyDivided = alreadyDivided;
 	}
 
+	/**
+	 * Checks if block is image
+	 * @return True if block is image, otherwise false
+	 */
 	public boolean isImg()
 	{
 		return _isImg;
 	}
 
+	/**
+	 * Checks if block contain images
+	 * @return Number of images
+	 */
 	public int containImg()
 	{
 		return _containImg;
 	}
 
+	/**
+	 * Checks if block contains table
+	 * @return True if block contains table, otherwise false
+	 */
 	public boolean containTable()
 	{
 		return _containTable;
 	}
 
+	/**
+	 * Gets length of text in block
+	 * @return Length of text
+	 */
 	public int getTextLength()
 	{
 		return _textLen;
 	}
 
+	/**
+	 * Gets length of text in links in block
+	 * @return Length of links text
+	 */
 	public int getLinkTextLength()
 	{
 		return _linkTextLen;
 	}
 
+	/**
+	 * Gets number of paragraphs in block
+	 * @return Number of paragraphs
+	 */
 	public int containP()
 	{
 		return _containP;
 	}
 
+	/**
+	 * Finds background color of element
+	 * @param element Element
+	 */
 	private void findBgColor(Element element)
 	{
 		String backgroundColor = element.getAttribute("background-color");
@@ -307,12 +382,24 @@ public class VipsBlock {
 		}
 	}
 
+	/**
+	 * Gets background color of element
+	 * @return Background color
+	 */
 	public String getBgColor()
 	{
 		if (_bgColor != null)
 			return _bgColor;
 
-		_bgColor = this.getElementBox().getStylePropertyValue("background-color");
+		if (this.getBox() instanceof TextBox)
+		{
+			_bgColor = "#ffffff";
+		}
+		else
+		{
+			_bgColor = this.getElementBox().getStylePropertyValue("background-color");
+		}
+
 
 		if (_bgColor.isEmpty())
 			findBgColor(this.getElementBox().getElement());
@@ -320,51 +407,78 @@ public class VipsBlock {
 		return _bgColor;
 	}
 
+	/**
+	 * Gets block's font size
+	 * @return Font size
+	 */
 	public int getFontSize()
 	{
-		return this.getElementBox().getVisualContext().getFont().getSize();
+		return this.getBox().getVisualContext().getFont().getSize();
 	}
 
+	/**
+	 * Gets block's font weight
+	 * @return Font weight
+	 */
 	public String getFontWeight()
 	{
 		String fontWeight = "";
+
+		if (this.getBox() instanceof TextBox)
+		{
+			return fontWeight;
+		}
 
 		if (this.getElementBox().getStylePropertyValue("font-weight") == null)
 			return fontWeight;
 
 		fontWeight = this.getElementBox().getStylePropertyValue("font-weight");
 
-		// TODO font weight in numbers
 		if (fontWeight.isEmpty())
 			fontWeight = "normal";
 
 		return fontWeight;
 	}
 
+	/**
+	 * Gets frame source index of block
+	 * @return Frame source index
+	 */
 	public int getFrameSourceIndex()
 	{
 		return _frameSourceIndex;
 	}
 
+	/**
+	 * Sets source index of block
+	 * @param node Node
+	 */
 	private void setSourceIndex(Node node)
 	{
 		if (!this.getBox().getNode().equals(node))
 			_tmpSrcIndex++;
 		else
 			_sourceIndex = _tmpSrcIndex;
-		/*
+
 		for (int i = 0; i < node.getChildNodes().getLength(); i++)
 		{
 			setSourceIndex(node.getChildNodes().item(i));
 		}
-		 */
 	}
 
+	/**
+	 * Gets source index of block
+	 * @return Block's source index
+	 */
 	public int getSourceIndex()
 	{
 		return _sourceIndex;
 	}
 
+	/**
+	 * Gets order of block
+	 * @return Block's order
+	 */
 	public int getOrder()
 	{
 		return _order;

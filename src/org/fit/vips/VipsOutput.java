@@ -19,18 +19,23 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.fit.cssbox.layout.Box;
 import org.fit.cssbox.layout.ElementBox;
 import org.fit.cssbox.layout.Viewport;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
+/**
+ * Class, that handles output of VIPS algorithm.
+ * @author v3s
+ *
+ */
 public final class VipsOutput {
 
 	private Document doc = null;
 	private boolean _escapeOutput = true;
-	private boolean _includeBlocks = false;
 	private int _pDoC = 0;
 	private int _order = 1;
+	private String _filename = "VIPSResult";
 
 	public VipsOutput() {
 	}
@@ -39,6 +44,11 @@ public final class VipsOutput {
 		this.setPDoC(pDoC);
 	}
 
+	/**
+	 * Gets source code of visual structure nodes
+	 * @param node Given node
+	 * @return Source code
+	 */
 	private String getSource(Element node)
 	{
 		String content = "";
@@ -57,6 +67,11 @@ public final class VipsOutput {
 		return content;
 	}
 
+	/**
+	 * Append node from given visual structure to parent node
+	 * @param parentNode Given visual structure
+	 * @param visualStructure Parent node
+	 */
 	private void writeVisualBlocks(Element parentNode, VisualStructure visualStructure)
 	{
 		Element layoutNode = doc.createElement("LayoutNode");
@@ -70,7 +85,8 @@ public final class VipsOutput {
 		layoutNode.setAttribute("ContainP", String.valueOf(visualStructure.containP()));
 		layoutNode.setAttribute("TextLen", String.valueOf(visualStructure.getTextLength()));
 		layoutNode.setAttribute("LinkTextLen", String.valueOf(visualStructure.getLinkTextLength()));
-		layoutNode.setAttribute("DOMCldNum", String.valueOf(visualStructure.getChildrenVisualStructures().size()));
+		Box parentBox = visualStructure.getNestedBlocks().get(0).getBox().getParent();
+		layoutNode.setAttribute("DOMCldNum", String.valueOf(parentBox.getNode().getChildNodes().getLength()));
 		layoutNode.setAttribute("FontSize", String.valueOf(visualStructure.getFontSize()));
 		layoutNode.setAttribute("FontWeight", String.valueOf(visualStructure.getFontWeight()));
 		layoutNode.setAttribute("BgColor", visualStructure.getBgColor());
@@ -85,67 +101,31 @@ public final class VipsOutput {
 
 		if (_pDoC >= visualStructure.getDoC())
 		{
-			if (_includeBlocks)
+			// continue segmenting
+			if (visualStructure.getChildrenVisualStructures().size() == 0)
 			{
-				if (visualStructure.getChildrenVisualStructures().size() == 0)
+				if (visualStructure.getNestedBlocks().size() > 0)
 				{
-					if (visualStructure.getNestedBlocks().size() > 0)
+					String src = "";
+					String content = "";
+					for (VipsBlock block : visualStructure.getNestedBlocks())
 					{
-						int numberOfBlock = 1;
-						for (VipsBlock block : visualStructure.getNestedBlocks())
-						{
-							ElementBox elementBox = block.getElementBox();
+						ElementBox elementBox = block.getElementBox();
 
-							if (elementBox == null)
-								continue;
+						if (elementBox == null)
+							continue;
 
-							String src = "";
-							String content = "";
+						if (!elementBox.getNode().getNodeName().equals("Xdiv") &&
+								!elementBox.getNode().getNodeName().equals("Xspan"))
+							src += getSource(elementBox.getElement());
+						else
+							src += elementBox.getText();
 
-							if (!elementBox.getNode().getNodeName().equals("Xdiv") &&
-									!elementBox.getNode().getNodeName().equals("Xspan"))
-								src += getSource(elementBox.getElement());
-							else
-								src += elementBox.getText();
+						content += elementBox.getText() + " ";
 
-							content += elementBox.getText() + " ";
-
-							layoutNode.setAttribute("innerHTML" + numberOfBlock, src);
-							layoutNode.setAttribute("innerText" + numberOfBlock, content);
-							layoutNode.setAttribute("textLength" + numberOfBlock, String.valueOf(content.length()));
-
-							numberOfBlock++;
-						}
 					}
-				}
-			}
-			else
-			{
-				if (visualStructure.getChildrenVisualStructures().size() == 0)
-				{
-					if (visualStructure.getNestedBlocks().size() > 0)
-					{
-						String src = "";
-						String content = "";
-						for (VipsBlock block : visualStructure.getNestedBlocks())
-						{
-							ElementBox elementBox = block.getElementBox();
-
-							if (elementBox == null)
-								continue;
-
-							if (!elementBox.getNode().getNodeName().equals("Xdiv") &&
-									!elementBox.getNode().getNodeName().equals("Xspan"))
-								src += getSource(elementBox.getElement());
-							else
-								src += elementBox.getText();
-
-							content += elementBox.getText() + " ";
-
-						}
-						layoutNode.setAttribute("SRC", src);
-						layoutNode.setAttribute("Content", content);
-					}
+					layoutNode.setAttribute("SRC", src);
+					layoutNode.setAttribute("Content", content);
 				}
 			}
 
@@ -156,6 +136,7 @@ public final class VipsOutput {
 		}
 		else
 		{
+			// "stop" segmentation
 			if (visualStructure.getNestedBlocks().size() > 0)
 			{
 				String src = "";
@@ -184,6 +165,11 @@ public final class VipsOutput {
 		}
 	}
 
+	/**
+	 * Writes visual structure to output XML
+	 * @param visualStructure Given visual structure
+	 * @param pageViewport Page's viewport
+	 */
 	public void writeXML(VisualStructure visualStructure, Viewport pageViewport)
 	{
 		try
@@ -219,7 +205,7 @@ public final class VipsOutput {
 
 			if (_escapeOutput)
 			{
-				StreamResult result = new StreamResult(new File("VIPSResult.xml"));
+				StreamResult result = new StreamResult(new File(_filename + ".xml"));
 				transformer.transform(source, result);
 			}
 			else
@@ -232,7 +218,7 @@ public final class VipsOutput {
 				result = result.replaceAll("&lt;", ">");
 				result = result.replaceAll("&quot;", "\"");
 
-				FileWriter fstream = new FileWriter("VIPSResult.xml");
+				FileWriter fstream = new FileWriter(_filename + ".xml");
 				fstream.write(result);
 			}
 		}
@@ -243,16 +229,19 @@ public final class VipsOutput {
 		}
 	}
 
+	/**
+	 * Enables or disables output escaping
+	 * @param value
+	 */
 	public void setEscapeOutput(boolean value)
 	{
 		_escapeOutput = value;
 	}
 
-	public void setIncludeBlocks(boolean value)
-	{
-		_includeBlocks = value;
-	}
-
+	/**
+	 * Sets permitted degree of coherence pDoC
+	 * @param pDoC pDoC value
+	 */
 	public void setPDoC(int pDoC)
 	{
 		if (pDoC <= 0 || pDoC> 11)
@@ -264,5 +253,18 @@ public final class VipsOutput {
 		{
 			_pDoC = pDoC;
 		}
+	}
+
+	/**
+	 * Sets output filename
+	 * @param filename Filename
+	 */
+	public void setOutputFileName(String filename)
+	{
+		if (!filename.equals(""))
+		{
+			_filename = filename;
+		}
+
 	}
 }

@@ -7,7 +7,11 @@
 package org.fit.vips;
 
 import java.util.List;
-
+/**
+ * Common interface for separators detectors.
+ * @author v3s
+ *
+ */
 public interface VipsSeparatorDetector {
 
 	public void fillPool();
@@ -32,7 +36,8 @@ public interface VipsSeparatorDetector {
 
 	public List<Separator> getVerticalSeparators();
 
-	public void setCleanUpSeparators(boolean cleanSeparators);
+	public void setCleanUpSeparators(int treshold);
 
 	public boolean isCleanUpEnabled();
+
 }

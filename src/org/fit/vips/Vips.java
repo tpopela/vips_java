@@ -27,19 +27,28 @@ import org.fit.cssbox.layout.BrowserCanvas;
 import org.fit.cssbox.layout.Viewport;
 import org.w3c.dom.Document;
 
+/**
+ * Vision-based Page Segmentation algorithm
+ * @author Tomas Popela
+ *
+ */
 public class Vips {
 	private URL _url = null;
 	private DOMAnalyzer _domAnalyzer = null;
-	private javax.swing.JPanel _browserCanvas = null;
+	private BrowserCanvas _browserCanvas = null;
 	private Viewport _viewport = null;
 
 	private boolean _graphicsOutput = false;
 	private boolean _outputToFolder = false;
-	private boolean _includeBlocks = false;
 	private boolean _outputEscaping = true;
-	private int _pDoC = 5;
+	private int _pDoC = 11;
+	private String _filename = "";
+	private	int sizeTresholdWidth = 350;
+	private	int sizeTresholdHeight = 400;
 
 	private PrintStream originalOut = null;
+	long startTime = 0;
+	long endTime = 0;
 
 	/**
 	 * Default constructor
@@ -66,12 +75,6 @@ public class Vips {
 		_outputToFolder = enable;
 	}
 
-	// TODO mozna odstanit
-	public void enableIncludeBlocks(boolean enable)
-	{
-		_includeBlocks = enable;
-	}
-
 	/**
 	 * Enables or disables output XML character escaping.
 	 * @param enable True for enable, otherwise false.
@@ -82,7 +85,7 @@ public class Vips {
 	}
 
 	/**
-	 * Sets predefined degree of coherence (pDoC) value.
+	 * Sets permitted degree of coherence (pDoC) value.
 	 * @param value pDoC value.
 	 */
 	public void setPredefinedDoC(int value)
@@ -146,7 +149,7 @@ public class Vips {
 	{
 		_browserCanvas = new BrowserCanvas(_domAnalyzer.getRoot(),
 				_domAnalyzer, new java.awt.Dimension(1000, 600), _url);
-		_viewport = ((BrowserCanvas) _browserCanvas).getViewport();
+		_viewport = _browserCanvas.getViewport();
 	}
 
 	/**
@@ -156,7 +159,7 @@ public class Vips {
 	{
 		try
 		{
-			BufferedImage page = ((BrowserCanvas) _browserCanvas).getImage();
+			BufferedImage page = _browserCanvas.getImage();
 			String filename = System.getProperty("user.dir") + "/page.png";
 			ImageIO.write(page, "png", new File(filename));
 		} catch (Exception e)
@@ -188,13 +191,11 @@ public class Vips {
 	 */
 	private void performSegmentation()
 	{
-		long startTime = System.nanoTime();
 
-		int numberOfIterations = 3;
+		startTime = System.nanoTime();
+		int numberOfIterations = 10;
 		int pageWidth = _viewport.getWidth();
 		int pageHeight = _viewport.getHeight();
-		int sizeTresholdWidth = 60;
-		int sizeTresholdHeight = 60;
 
 		if (_graphicsOutput)
 			exportPageToImage();
@@ -204,39 +205,27 @@ public class Vips {
 		VisualStructureConstructor constructor = new VisualStructureConstructor(_pDoC);
 		constructor.setGraphicsOutput(_graphicsOutput);
 
-		for (int i = 1; i < numberOfIterations+1; i++)
+		for (int iterationNumber = 1; iterationNumber < numberOfIterations+1; iterationNumber++)
 		{
-			System.err.println();
-			System.err.println();
-			System.err.println("Beginning of iteration number " + i);
-			System.err.println();
-			System.err.println();
-
 			detector = new VipsSeparatorGraphicsDetector(pageWidth, pageHeight);
 
 			//visual blocks detection
 			vipsParser.setSizeTresholdHeight(sizeTresholdHeight);
 			vipsParser.setSizeTresholdWidth(sizeTresholdWidth);
 
-			if (i != numberOfIterations)
-				vipsParser.parse();
+			vipsParser.parse();
 
 			VipsBlock vipsBlocks = vipsParser.getVipsBlocks();
 
-			for(VipsBlock vb : vipsParser.getVisualBlocks())
-			{
-				System.out.println(vb.getDoC() + "   " + vb.getBox().getNode().getNodeName());
-			}
-
-			if (i == 1)
+			if (iterationNumber == 1)
 			{
 				if (_graphicsOutput)
 				{
 					// in first round we'll export global separators
 					detector.setVipsBlock(vipsBlocks);
 					detector.fillPool();
-					detector.saveToImage("blocks" + i);
-					detector.setCleanUpSeparators(false);
+					detector.saveToImage("blocks" + iterationNumber);
+					detector.setCleanUpSeparators(0);
 					detector.detectHorizontalSeparators();
 					detector.detectVerticalSeparators();
 					detector.exportHorizontalSeparatorsToImage();
@@ -257,39 +246,64 @@ public class Vips {
 				{
 					detector.setVisualBlocks(constructor.getVisualBlocks());
 					detector.fillPool();
-					detector.saveToImage("blocks" + i);
+					detector.saveToImage("blocks" + iterationNumber);
 				}
 			}
 
 			// visual structure construction
 			constructor.constructVisualStructure();
 
-			sizeTresholdHeight = 1;
-			sizeTresholdWidth = 1;
+			// prepare tresholds for next iteration
+			if (iterationNumber <= 5 )
+			{
+				sizeTresholdHeight -= 50;
+				sizeTresholdWidth -= 50;
 
-			System.err.println();
-			System.err.println();
-			System.err.println("End of iteration number " + i);
+			}
+			if (iterationNumber == 6)
+			{
+				sizeTresholdHeight = 100;
+				sizeTresholdWidth = 100;
+			}
+			if (iterationNumber == 7)
+			{
+				sizeTresholdHeight = 80;
+				sizeTresholdWidth = 80;
+			}
+			if (iterationNumber == 8)
+			{
+				sizeTresholdHeight = 40;
+				sizeTresholdWidth = 10;
+			}
+			if (iterationNumber == 9)
+			{
+				sizeTresholdHeight = 1;
+				sizeTresholdWidth = 1;
+			}
+
 		}
 
-		System.err.println();
-		System.err.println();
-
-		constructor.normalizeSeparators();
+		//		constructor.normalizeSeparatorsSoftMax();
+		constructor.normalizeSeparatorsMinMax();
 
 		VipsOutput vipsOutput = new VipsOutput(_pDoC);
 		vipsOutput.setEscapeOutput(_outputEscaping);
-		vipsOutput.setIncludeBlocks(_includeBlocks);
+		vipsOutput.setOutputFileName(_filename);
 		vipsOutput.writeXML(constructor.getVisualStructure(), _viewport);
 
-		long endTime = System.nanoTime();
+		endTime = System.nanoTime();
+
 		long diff = endTime - startTime;
 
-		System.err.println("Execution time of VIPS: " + diff + " ns; " +
+		System.out.println("Execution time of VIPS: " + diff + " ns; " +
 				(diff / 1000000.0) + " ms; " +
 				(diff / 1000000000.0) + " sec");
 	}
 
+	/**
+	 * Starts segmentation on given address
+	 * @param url
+	 */
 	public void startSegmentation(String url)
 	{
 		setUrl(url);
@@ -297,6 +311,9 @@ public class Vips {
 		startSegmentation();
 	}
 
+	/**
+	 * Restores stdout
+	 */
 	private void restoreOut()
 	{
 		if (originalOut != null)
@@ -305,6 +322,9 @@ public class Vips {
 		}
 	}
 
+	/**
+	 * Redirects stdout to nowhere
+	 */
 	private void redirectOut()
 	{
 		originalOut = System.out;
@@ -329,7 +349,9 @@ public class Vips {
 			InputStream urlStream = urlConnection.getInputStream();
 
 			redirectOut();
+
 			getDomTree(urlStream);
+			startTime = System.nanoTime();
 			getViewport();
 			restoreOut();
 
@@ -364,6 +386,18 @@ public class Vips {
 		{
 			System.err.println("Something's wrong!");
 			e.printStackTrace();
+		}
+	}
+
+	public void setOutputFileName(String filename)
+	{
+		if (!filename.equals(""))
+		{
+			_filename = filename;
+		}
+		else
+		{
+			System.out.println("Invalid filename!");
 		}
 	}
 }

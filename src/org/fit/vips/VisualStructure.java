@@ -9,6 +9,13 @@ package org.fit.vips;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.w3c.dom.Node;
+
+/**
+ * Class that represents visual structure.
+ * @author v3s
+ *
+ */
 public class VisualStructure {
 
 	private List<VipsBlock> _nestedBlocks = null;
@@ -27,65 +34,101 @@ public class VisualStructure {
 	private int _order;
 	private boolean _containTable = false;
 	private String _id = null;
+	private int _tmpSrcIndex = 0;
+	private int _srcIndex = 0;
+	private int _minimalDoC = 0;
 
 	public VisualStructure()
 	{
-		_nestedBlocks = new ArrayList<>();
-		_childrenVisualStructures = new ArrayList<>();
-		_horizontalSeparators = new ArrayList<>();
-		_verticalSeparators = new ArrayList<>();
+		_nestedBlocks = new ArrayList<VipsBlock>();
+		_childrenVisualStructures = new ArrayList<VisualStructure>();
+		_horizontalSeparators = new ArrayList<Separator>();
+		_verticalSeparators = new ArrayList<Separator>();
 	}
 
 	/**
-	 * @return the _nestedBlocks
+	 * @return Nested blocks in structure
 	 */
 	public List<VipsBlock> getNestedBlocks()
 	{
 		return _nestedBlocks;
 	}
 
+	/**
+	 * Adds block to nested blocks
+	 * @param nestedBlock New block
+	 */
 	public void addNestedBlock(VipsBlock nestedBlock)
 	{
 		this._nestedBlocks.add(nestedBlock);
 	}
 
+	/**
+	 * Adds blocks to nested blocks
+	 * @param nestedBlocks
+	 */
 	public void addNestedBlocks(List<VipsBlock> nestedBlocks)
 	{
 		this._nestedBlocks.addAll(nestedBlocks);
 	}
 
+	/**
+	 * Sets blocks as nested blocks
+	 * @param vipsBlocks
+	 */
 	public void setNestedBlocks(List<VipsBlock> vipsBlocks)
 	{
 		this._nestedBlocks = vipsBlocks;
 	}
 
+	/**
+	 * Clears nested blocks list
+	 */
 	public void clearNestedBlocks()
 	{
 		this._nestedBlocks.clear();
 	}
 
+	/**
+	 * Removes nested block at given index
+	 * @param index Index of block
+	 */
 	public void removeNestedBlockAt(int index)
 	{
 		this._nestedBlocks.remove(index);
 	}
 
+	/**
+	 * Removes given child from structures children
+	 * @param visualStructure Child
+	 */
 	public void removeChild(VisualStructure visualStructure)
 	{
 		this._childrenVisualStructures.remove(visualStructure);
 	}
 
+	/**
+	 * Adds new child to visual structure children
+	 * @param visualStructure New child
+	 */
 	public void addChild(VisualStructure visualStructure)
 	{
 		this._childrenVisualStructures.add(visualStructure);
 	}
 
+	/**
+	 * Adds new child to visual structure at given index
+	 * @param visualStructure New child
+	 * @param index Index
+	 */
 	public void addChildAt(VisualStructure visualStructure, int index)
 	{
 		this._childrenVisualStructures.add(index, visualStructure);
 	}
 
 	/**
-	 * @return the _childrenVisualStructures
+	 * Returns all children structures
+	 * @return Children structures
 	 */
 	public List<VisualStructure> getChildrenVisualStructures()
 	{
@@ -93,15 +136,17 @@ public class VisualStructure {
 	}
 
 	/**
-	 * @param _childrenVisualStructures the _childrenVisualStructures to set
+	 * Sets visual structures as children of visual structure
+	 * @param childrenVisualStructures List of visual structures
 	 */
-	public void setChildrenVisualStructures(List<VisualStructure> _childrenVisualStructures)
+	public void setChildrenVisualStructures(List<VisualStructure> childrenVisualStructures)
 	{
-		this._childrenVisualStructures = _childrenVisualStructures;
+		this._childrenVisualStructures = childrenVisualStructures;
 	}
 
 	/**
-	 * @return the _horizontalSeparators
+	 * Returns all horizontal separators form structure
+	 * @return List of horizontal separators
 	 */
 	public List<Separator> getHorizontalSeparators()
 	{
@@ -109,15 +154,17 @@ public class VisualStructure {
 	}
 
 	/**
-	 * @param _horizontalSeparators the _horizontalSeparators to set
+	 * Sets list of separators as horizontal separators of structure
+	 * @param horizontalSeparators List of separators
 	 */
-	public void setHorizontalSeparators(List<Separator> _horizontalSeparators)
+	public void setHorizontalSeparators(List<Separator> horizontalSeparators)
 	{
-		this._horizontalSeparators = _horizontalSeparators;
+		this._horizontalSeparators = horizontalSeparators;
 	}
 
 	/**
-	 * @param _horizontalSeparators the _horizontalSeparators to set
+	 * Adds separator to horizontal separators of structure
+	 * @param horizontalSeparator
 	 */
 	public void addHorizontalSeparator(Separator horizontalSeparator)
 	{
@@ -126,7 +173,8 @@ public class VisualStructure {
 	}
 
 	/**
-	 * @param _horizontalSeparators the _horizontalSeparators to set
+	 * Adds separators to horizontal separators of structure
+	 * @param horizontalSeparators
 	 */
 	public void addHorizontalSeparators(List<Separator> horizontalSeparators)
 	{
@@ -134,48 +182,81 @@ public class VisualStructure {
 
 	}
 
+	/**
+	 * Returns X structure's coordinate
+	 * @return X coordinate
+	 */
 	public int getX()
 	{
 		return this._x;
 	}
 
+	/**
+	 * Returns structure's Y coordinate
+	 * @return Y coordinate
+	 */
 	public int getY()
 	{
 		return this._y;
 	}
 
+	/**
+	 * Sets X coordinate
+	 * @param x X coordinate
+	 */
 	public void setX(int x)
 	{
 		this._x = x;
 	}
 
+	/**
+	 * Sets Y coordinate
+	 * @param y Y coordinate
+	 */
 	public void setY(int y)
 	{
 		this._y = y;
 	}
 
+	/**
+	 * Sets width of visual structure
+	 * @param width Width
+	 */
 	public void setWidth(int width)
 	{
 		this._width = width;
 	}
 
+	/**
+	 * Sets height of visual structure
+	 * @param height Height
+	 */
 	public void setHeight(int height)
 	{
 		this._height = height;
 	}
 
+	/**
+	 * Returns width of visual structure
+	 * @return Visual structure's width
+	 */
 	public int getWidth()
 	{
 		return this._width;
 	}
 
+	/**
+	 * Returns height of visual structure
+	 * @return Visual structure's height
+	 */
 	public int getHeight()
 	{
 		return this._height;
 	}
 
 	/**
-	 * @return the _verticalSeparators
+	 * Returns list of all vertical separators in visual structure
+	 * @return List of vertical separators
 	 */
 	public List<Separator> getVerticalSeparators()
 	{
@@ -183,7 +264,8 @@ public class VisualStructure {
 	}
 
 	/**
-	 * @param _verticalSeparators the _verticalSeparators to set
+	 * Sets list of separators as vertical separators of structure
+	 * @param _verticalSeparators List of separators
 	 */
 	public void setVerticalSeparators(List<Separator> _verticalSeparators)
 	{
@@ -191,52 +273,75 @@ public class VisualStructure {
 	}
 
 	/**
-	 * @param _horizontalSeparators the _horizontalSeparators to set
+	 * Adds separator to structure's vertical sepators
+	 * @param verticalSeparator
 	 */
 	public void addVerticalSeparator(Separator verticalSeparator)
 	{
 		this._verticalSeparators.add(verticalSeparator);
 	}
 
+	/**
+	 * Sets if of visual structure
+	 * @param id Id
+	 */
 	public void setId(String id)
 	{
 		this._id = id;
 	}
 
+	/**
+	 * Returns id of visual structure
+	 * @return Visual structure's id
+	 */
 	public String getId()
 	{
 		return this._id;
 	}
 
+	/**
+	 * Sets visual structure's degree of coherence DoC
+	 * @param doC Degree of coherence - DoC
+	 */
 	public void setDoC(int doC)
 	{
 		this._doC = doC;
 	}
 
+	/**
+	 * Returns structure's degree of coherence DoC
+	 * @return Degree of coherence - DoC
+	 */
 	public int getDoC()
 	{
-		if (_doC != -1)
-			return _doC;
-
-		_doC = 0;
-
-		for (Separator separator : _horizontalSeparators)
-		{
-			if (separator.weight > _doC)
-				_doC = separator.weight;
-		}
-
-		for (Separator separator : _verticalSeparators)
-		{
-			if (separator.weight > _doC)
-				_doC = separator.weight;
-		}
-
 		return _doC;
 	}
 
+	/**
+	 * Finds minimal DoC in all children visual structures
+	 * @param visualStructure Given visual structure
+	 */
+	private void findMinimalDoC(VisualStructure visualStructure)
+	{
+		if (!visualStructure.getId().equals("1"))
+		{
+			if (visualStructure.getDoC() < _minimalDoC)
+				_minimalDoC = visualStructure.getDoC();
+		}
+
+		for (VisualStructure child : visualStructure.getChildrenVisualStructures())
+		{
+			findMinimalDoC(child);
+		}
+	}
+
+	/**
+	 * Updates DoC to normalized DoC
+	 */
 	public void updateToNormalizedDoC()
 	{
+		_doC = 12;
+
 		for (Separator separator : _horizontalSeparators)
 		{
 			if (separator.normalizedWeight < _doC)
@@ -257,8 +362,19 @@ public class VisualStructure {
 					_doC = nestedBlock.getDoC();
 			}
 		}
+
+		_minimalDoC = 12;
+
+		findMinimalDoC(this);
+
+		if (_minimalDoC < _doC)
+			_doC = _minimalDoC;
 	}
 
+	/**
+	 * Check if visual structure contain images
+	 * @return Number of images
+	 */
 	public int containImg()
 	{
 		if (_containImg != -1)
@@ -274,6 +390,10 @@ public class VisualStructure {
 		return _containImg;
 	}
 
+	/**
+	 * Check if visual structure contain paragraphs
+	 * @return Nubmer of paragraphs
+	 */
 	public int containP()
 	{
 		if (_containP != -1)
@@ -289,6 +409,10 @@ public class VisualStructure {
 		return _containP;
 	}
 
+	/**
+	 * Checks visual structure contains table
+	 * @return True if contains, otherwise false
+	 */
 	public boolean containTable()
 	{
 		if (_containTable)
@@ -306,6 +430,10 @@ public class VisualStructure {
 		return _containTable;
 	}
 
+	/**
+	 * Checks if visual structure is image
+	 * @return True if is image, otherwise false
+	 */
 	public boolean isImg()
 	{
 		if (_nestedBlocks.size() != 1)
@@ -314,6 +442,10 @@ public class VisualStructure {
 		return _nestedBlocks.get(0).isImg();
 	}
 
+	/**
+	 * Returns length of text in visual structure
+	 * @return Text length
+	 */
 	public int getTextLength()
 	{
 		if (_textLength != -1)
@@ -328,11 +460,14 @@ public class VisualStructure {
 		return _textLength;
 	}
 
+	/**
+	 * Returns length of text in links in visual structure
+	 * @return Link text length
+	 */
 	public int getLinkTextLength()
 	{
 		if (_linkTextLength != -1)
 			return _linkTextLength;
-
 
 		_linkTextLength = 0;
 		for (VipsBlock vipsBlock : _nestedBlocks)
@@ -343,6 +478,10 @@ public class VisualStructure {
 		return _linkTextLength;
 	}
 
+	/**
+	 * Gets visual structure font size
+	 * @return Font size
+	 */
 	public int getFontSize()
 	{
 		if (_nestedBlocks.size() > 0)
@@ -351,6 +490,10 @@ public class VisualStructure {
 			return -1;
 	}
 
+	/**
+	 * Gets visual structure font weight
+	 * @return Font weight
+	 */
 	public String getFontWeight()
 	{
 		if (_nestedBlocks.size() > 0)
@@ -359,6 +502,10 @@ public class VisualStructure {
 			return "undef";
 	}
 
+	/**
+	 * Gets visual structure background color
+	 * @return Background color
+	 */
 	public String getBgColor()
 	{
 		if (_nestedBlocks.size() > 0)
@@ -367,6 +514,10 @@ public class VisualStructure {
 			return "undef";
 	}
 
+	/**
+	 * Gets frame source index of visual structure
+	 * @return Frame source index
+	 */
 	public int getFrameSourceIndex()
 	{
 		if (_nestedBlocks.size() > 0)
@@ -375,31 +526,72 @@ public class VisualStructure {
 			return -1;
 	}
 
+	/**
+	 * Sets source index of visual structure
+	 * @param node Node
+	 * @param nodeToFind Node to find
+	 */
+	private void setSourceIndex(Node node, Node nodeToFind)
+	{
+		if (!nodeToFind.equals(node))
+			_tmpSrcIndex++;
+		else
+			_srcIndex = _tmpSrcIndex;
+
+		for (int i = 0; i < node.getChildNodes().getLength(); i++)
+		{
+			setSourceIndex(node.getChildNodes().item(i), nodeToFind);
+		}
+	}
+
+	/**
+	 * Gets source index of visual strucure
+	 * @return Visual structure's source index
+	 */
 	public String getSourceIndex()
 	{
 		String sourceIndex = "";
 
-		for (VipsBlock block : _nestedBlocks)
+		if (_childrenVisualStructures.size() > 0)
 		{
-			if (!sourceIndex.equals(""))
-				sourceIndex += ";";
-
-			sourceIndex += block.getSourceIndex();
+			setSourceIndex(_nestedBlocks.get(0).getBox().getNode().getOwnerDocument(), _nestedBlocks.get(0).getBox().getParent().getNode());
+			sourceIndex = String.valueOf(_srcIndex);
 		}
+		else
+		{
+			for (VipsBlock block : _nestedBlocks)
+			{
+				if (!sourceIndex.equals(""))
+					sourceIndex += ";";
 
+				sourceIndex += block.getSourceIndex();
+			}
+		}
 		return sourceIndex;
 	}
 
+	/**
+	 * Sets visual structure order
+	 * @param order Order
+	 */
 	public void setOrder(int order)
 	{
 		this._order = order;
 	}
 
+	/**
+	 * Returns visual structure order
+	 * @return Visual structure order
+	 */
 	public int getOrder()
 	{
 		return _order;
 	}
 
+	/**
+	 * Adds list of separators to visual structure vertical separators list.
+	 * @param verticalSeparators
+	 */
 	public void addVerticalSeparators(List<Separator> verticalSeparators)
 	{
 		this._verticalSeparators.addAll(verticalSeparators);

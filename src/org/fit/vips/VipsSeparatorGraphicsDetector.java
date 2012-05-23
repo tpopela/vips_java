@@ -23,6 +23,11 @@ import javax.swing.JPanel;
 import org.fit.cssbox.layout.Box;
 import org.fit.cssbox.layout.TextBox;
 
+/**
+ * Separator detector with possibility of generating graphics output.
+ * @author v3s
+ *
+ */
 public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparatorDetector {
 
 	private static final long serialVersionUID = 5825509847374498L;
@@ -34,7 +39,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	private List<Separator> _horizontalSeparators = null;
 	private List<Separator> _verticalSeparators = null;
 
-	private boolean _cleanSeparators = false;
+	private int _cleanSeparatorsTreshold = 0;
 
 	/**
 	 * Defaults constructor.
@@ -97,8 +102,6 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	/**
 	 * Fills pool with all visual blocks from VIPS blocks.
 	 * 
-	 * @param vipsBlock
-	 *            Visual block
 	 */
 	@Override
 	public void fillPool()
@@ -138,7 +141,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 
 	/**
 	 * Gets VIPS block that is used for separators computing.
-	 * @return Visual structure
+	 * @return Vips blocks
 	 */
 	@Override
 	public VipsBlock getVipsBlock()
@@ -148,7 +151,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 
 	/**
 	 * Sets VIPS block, that will be used for separators computing.
-	 * @param vipsBlock Visual structure
+	 * @param visualBlocks List of visual blocks
 	 */
 	@Override
 	public void setVisualBlocks(List<VipsBlock> visualBlocks)
@@ -185,7 +188,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 			for (Separator separator : _verticalSeparators)
 			{
 				// find separator, that intersects with our visual block
-				if (blockStart <= separator.endPoint)
+				if (blockStart < separator.endPoint)
 				{
 					// next there are six relations that the separator and visual block can have
 
@@ -262,6 +265,33 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 								nextSeparator.startPoint = blockEnd + 1;
 								break;
 							}
+							else
+							{
+								List<Separator> tempSeparators = new ArrayList<Separator>();
+								tempSeparators.addAll(_verticalSeparators);
+
+								//remove all separators, that are included in block
+								for (Separator other : tempSeparators)
+								{
+									if (blockStart < other.startPoint && other.endPoint < blockEnd)
+									{
+										_verticalSeparators.remove(other);
+										continue;
+									}
+									if (blockEnd > other.startPoint && blockEnd < other.endPoint)
+									{
+										// change separator start's point coordinate
+										other.startPoint = blockEnd+1;
+										break;
+									}
+									if (blockStart > other.startPoint && blockStart < other.endPoint)
+									{
+										other.endPoint = blockStart-1;
+										continue;
+									}
+								}
+								break;
+							}
 						}
 					}
 					// if separator ends in the middle of block
@@ -291,7 +321,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 			for (Separator separator : _horizontalSeparators)
 			{
 				// find separator, that intersects with our visual block
-				if (blockStart <= separator.endPoint)
+				if (blockStart < separator.endPoint)
 				{
 					// next there are six relations that the separator and visual block can have
 
@@ -368,6 +398,33 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 								nextSeparator.startPoint = blockEnd + 1;
 								break;
 							}
+							else
+							{
+								List<Separator> tempSeparators = new ArrayList<Separator>();
+								tempSeparators.addAll(_horizontalSeparators);
+
+								//remove all separators, that are included in block
+								for (Separator other : tempSeparators)
+								{
+									if (blockStart < other.startPoint && other.endPoint < blockEnd)
+									{
+										_horizontalSeparators.remove(other);
+										continue;
+									}
+									if (blockEnd > other.startPoint && blockEnd < other.endPoint)
+									{
+										// change separator start's point coordinate
+										other.startPoint = blockEnd+1;
+										break;
+									}
+									if (blockStart > other.startPoint && blockStart < other.endPoint)
+									{
+										other.endPoint = blockStart-1;
+										continue;
+									}
+								}
+								break;
+							}
 						}
 					}
 					// if separator ends in the middle of block
@@ -407,12 +464,11 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 				_horizontalSeparators.remove(separator);
 			if (separator.endPoint == _image.getHeight())
 				_horizontalSeparators.remove(separator);
-			if (separator.endPoint - separator.startPoint == 0)
-				_horizontalSeparators.remove(separator);
 		}
 
-		if (_cleanSeparators)
+		if (_cleanSeparatorsTreshold != 0)
 			cleanUpSeparators(_horizontalSeparators);
+
 		computeHorizontalWeights();
 		sortSeparatorsByWeight(_horizontalSeparators);
 	}
@@ -445,11 +501,9 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 				_verticalSeparators.remove(separator);
 			if (separator.endPoint == _image.getWidth())
 				_verticalSeparators.remove(separator);
-			if (separator.endPoint - separator.startPoint == 0)
-				_verticalSeparators.remove(separator);
 		}
 
-		if (_cleanSeparators)
+		if (_cleanSeparatorsTreshold != 0)
 			cleanUpSeparators(_verticalSeparators);
 		computeVerticalWeights();
 		sortSeparatorsByWeight(_verticalSeparators);
@@ -457,14 +511,14 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 
 	private void cleanUpSeparators(List<Separator> separators)
 	{
-		List<Separator> tempList = new ArrayList<>();
+		List<Separator> tempList = new ArrayList<Separator>();
 		tempList.addAll(separators);
 
 		for (Separator separator : tempList)
 		{
 			int width = separator.endPoint - separator.startPoint + 1;
 
-			if (width <= 10)
+			if (width < _cleanSeparatorsTreshold)
 				separators.remove(separator);
 		}
 	}
@@ -516,7 +570,13 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	{
 		int width = separator.endPoint - separator.startPoint + 1;
 
-		if (width > 35 )
+		//separator.weight += width;
+
+		if (width > 55 )
+			separator.weight += 12;
+		if (width > 45 && width <= 55)
+			separator.weight += 10;
+		if (width > 35 && width <= 45)
 			separator.weight += 8;
 		if (width > 25 && width <= 35)
 			separator.weight += 6;
@@ -526,6 +586,7 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 			separator.weight += 2;
 		else
 			separator.weight += 1;
+
 	}
 
 	/**
@@ -813,7 +874,6 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 
 	/**
 	 * Saves everything (separators + block) to image.
-	 * @param vipsBlock Vips block
 	 */
 	public void exportAllToImage()
 	{
@@ -824,6 +884,9 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 		saveToImage("all");
 	}
 
+	/**
+	 * Saves everything (separators + block) to image with given suffix.
+	 */
 	public void exportAllToImage(int suffix)
 	{
 		createPool();
@@ -984,14 +1047,17 @@ public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparat
 	}
 
 	@Override
-	public void setCleanUpSeparators(boolean cleanSeparators)
+	public void setCleanUpSeparators(int treshold)
 	{
-		this._cleanSeparators = cleanSeparators;
+		this._cleanSeparatorsTreshold = treshold;
 	}
 
 	@Override
 	public boolean isCleanUpEnabled()
 	{
-		return _cleanSeparators;
+		if (_cleanSeparatorsTreshold == 0)
+			return true;
+
+		return false;
 	}
 }
