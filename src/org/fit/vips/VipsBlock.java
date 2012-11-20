@@ -1,5 +1,5 @@
 /*
- * Tomas Popela, xpopel11, 2012
+ * Tomas Popela, 2012
  * VIPS - Visual Internet Page Segmentation
  * Module - VipsBlock.java
  */

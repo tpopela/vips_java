@@ -1,5 +1,5 @@
 /*
- * Tomas Popela, xpopel11, 2012
+ * Tomas Popela, 2012
  * VIPS - Visual Internet Page Segmentation
  * Module - VipsSeparatorGraphicsDetector.java
  */
@@ -25,7 +25,7 @@ import org.fit.cssbox.layout.TextBox;
 
 /**
  * Separator detector with possibility of generating graphics output.
- * @author v3s
+ * @author Tomas Popela
  *
  */
 public class VipsSeparatorGraphicsDetector extends JPanel implements VipsSeparatorDetector {

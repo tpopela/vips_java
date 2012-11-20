@@ -1,5 +1,5 @@
 /*
- * Tomas Popela, xpopel11, 2012
+ * Tomas Popela, 2012
  * VIPS - Visual Internet Page Segmentation
  * Module - VisualStructureConstructor.java
  */
@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * Class that constructs final visual structure of page.
- * @author v3s
+ * @author Tomas Popela
  *
  */
 public class VisualStructureConstructor {

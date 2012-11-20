@@ -1,5 +1,5 @@
 /*
- * Tomas Popela, xpopel11, 2012
+ * Tomas Popela, 2012
  * VIPS - Visual Internet Page Segmentation
  * Module - VipsParser.java
  */
@@ -16,7 +16,7 @@ import org.fit.cssbox.layout.Viewport;
 import org.w3c.dom.Node;
 /**
  * Class that parses blocks on page and finds visual blocks.
- * @author v3s
+ * @author Tomas Popela
  *
  */
 public class VipsParser {

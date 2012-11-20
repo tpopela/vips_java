@@ -1,5 +1,5 @@
 /*
- * Tomas Popela, xpopel11, 2012
+ * Tomas Popela, 2012
  * VIPS - Visual Internet Page Segmentation
  * Module - Separator.java
  */
@@ -10,6 +10,8 @@ import java.awt.Point;
 
 /**
  * Class that represents visual separator.
+ * @author Tomas Popela
+ *
  */
 public class Separator implements Comparable<Separator> {
 	public int startPoint = 0;

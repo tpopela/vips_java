@@ -1,5 +1,5 @@
 /*
- * Tomas Popela, xpopel11, 2012
+ * Tomas Popela, 2012
  * VIPS - Visual Internet Page Segmentation
  * Module - VipsOutput.java
  */
@@ -26,7 +26,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 /**
  * Class, that handles output of VIPS algorithm.
- * @author v3s
+ * @author Tomas Popela
  *
  */
 public final class VipsOutput {

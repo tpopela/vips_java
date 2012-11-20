@@ -1,5 +1,5 @@
 /*
- * Tomas Popela, xpopel11, 2012
+ * Tomas Popela, 2012
  * VIPS - Visual Internet Page Segmentation
  * Module - VisualStructurejava
  */
@@ -13,7 +13,7 @@ import org.w3c.dom.Node;
 
 /**
  * Class that represents visual structure.
- * @author v3s
+ * @author Tomas Popela
  *
  */
 public class VisualStructure {

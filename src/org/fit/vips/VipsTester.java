@@ -1,5 +1,5 @@
 /*
- * Tomas Popela, xpopel11, 2012
+ * Tomas Popela, 2012
  * VIPS - Visual Internet Page Segmentation
  * Module - VipsTester.java
  */
@@ -8,7 +8,7 @@ package org.fit.vips;
 
 /**
  * VIPS API example application.
- * @author v3s
+ * @author Tomas Popela
  *
  */
 public class VipsTester {

@@ -1,5 +1,5 @@
 /*
- * Tomas Popela, xpopel11, 2012
+ * Tomas Popela, 2012
  * VIPS - Visual Internet Page Segmentation
  * Module - VipsSeparatorDetector.java
  */
@@ -9,7 +9,7 @@ package org.fit.vips;
 import java.util.List;
 /**
  * Common interface for separators detectors.
- * @author v3s
+ * @author Tomas Popela
  *
  */
 public interface VipsSeparatorDetector {
