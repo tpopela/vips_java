@@ -133,10 +133,11 @@ public class Vips {
 			Document domTree = parser.parse();
 			_domAnalyzer = new DOMAnalyzer(domTree, _url);
 			_domAnalyzer.attributesToStyles();
-			_domAnalyzer.addStyleSheet(null, CSSNorm.stdStyleSheet());
-			_domAnalyzer.addStyleSheet(null, CSSNorm.userStyleSheet());
+			_domAnalyzer.addStyleSheet(null, CSSNorm.stdStyleSheet(), DOMAnalyzer.Origin.AGENT);
+			_domAnalyzer.addStyleSheet(null, CSSNorm.userStyleSheet(), DOMAnalyzer.Origin.AGENT);
 			_domAnalyzer.getStyleSheets();
-		} catch (Exception e)
+		}
+		catch (Exception e)
 		{
 			System.err.print(e.getMessage());
 		}

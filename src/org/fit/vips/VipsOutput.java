@@ -220,6 +220,7 @@ public final class VipsOutput {
 
 				FileWriter fstream = new FileWriter(_filename + ".xml");
 				fstream.write(result);
+				fstream.close();
 			}
 		}
 		catch (Exception e)
