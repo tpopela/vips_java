@@ -214,8 +214,8 @@ public final class VipsOutput {
 				transformer.transform(source, new StreamResult(writer));
 				String result = writer.toString();
 
-				result = result.replaceAll("&gt;", "<");
-				result = result.replaceAll("&lt;", ">");
+				result = result.replaceAll("&gt;", ">");
+				result = result.replaceAll("&lt;", "<");
 				result = result.replaceAll("&quot;", "\"");
 
 				FileWriter fstream = new FileWriter(_filename + ".xml");
