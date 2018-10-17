@@ -367,8 +367,10 @@ public class VipsBlock {
 		if (backgroundColor.isEmpty())
 		{
 			if (element.getParentNode() != null &&
-					!(element.getParentNode() instanceof org.apache.xerces.dom.DeferredDocumentImpl))
+			    !element.getTagName().equals("body"))
+			{
 				findBgColor((Element) element.getParentNode());
+			}
 			else
 			{
 				_bgColor = "#ffffff";
