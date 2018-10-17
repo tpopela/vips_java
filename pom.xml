@@ -1,0 +1,55 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.fit.vips</groupId>
+  <artifactId>vips-java</artifactId>
+  <packaging>jar</packaging>
+  <version>1.0</version>
+  <name>vips-java</name>
+  <url>https://github.com/tpopela/vips_java</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <junit.jupiter.version>5.3.0</junit.jupiter.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>net.sf.cssbox</groupId>
+      <artifactId>cssbox</artifactId>
+      <version>4.14</version>
+    </dependency>
+    <dependency>
+     <groupId>org.junit.jupiter</groupId>
+     <artifactId>junit-jupiter-api</artifactId>
+     <version>${junit.jupiter.version}</version>
+     <scope>test</scope>
+    </dependency>
+    <dependency>
+     <groupId>org.junit.jupiter</groupId>
+     <artifactId>junit-jupiter-params</artifactId>
+     <version>${junit.jupiter.version}</version>
+     <scope>test</scope>
+    </dependency>
+    <dependency>
+     <groupId>org.junit.jupiter</groupId>
+     <artifactId>junit-jupiter-engine</artifactId>
+     <version>${junit.jupiter.version}</version>
+     <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+ <build>
+  <plugins>
+   <!-- JUnit 5 requires Surefire version 2.22.0 or higher -->
+   <plugin>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>2.22.0</version>
+   </plugin>
+  </plugins>
+</build>
+
+</project>
