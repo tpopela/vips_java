@@ -21,17 +21,7 @@ by Radek Burget.
 Compilation
 -----------
 
-This project uses Apache Maven. Compile it by running `mvn compile` or `mvn package` if you want to produce the JAR file.
-
-If you have used the `mvn compile` then run:
-
-``java -cp target/classes/ org.fit.vips.VipsTester``
-
-or if `mvn package`:
-
-``java -cp target/vips-java-*.jar org.fit.vips.VipsTester``
-
-to start the VipsTester.
+This project uses Apache Maven. Compile it by running `mvn package` and run `java -cp target/vips-java-*jar-with-dependencies.jar org.fit.vips.VipsTester` to start the VipsTester.
 
 Usage
 -----
